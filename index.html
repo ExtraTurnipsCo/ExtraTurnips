@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name — Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5a56;
+      --text-muted: #9a9a94;
+      --bg: #faf9f7;
+      --border: #e8e6e0;
+      --accent: #2a2a26;
+      --tag-bg: #f0ede6;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* NAV */
+    nav {
+      padding: 2rem 0 1.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 3rem;
+    }
+
+    .nav-logo {
+      font-family: 'Lora', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.75rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text-primary); }
+
+    /* PAGES */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* HOME */
+    .hero {
+      margin-bottom: 3.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'Lora', serif;
+      font-size: 2rem;
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .post-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .post-item {
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .post-item:first-child { border-top: 1px solid var(--border); }
+
+    .post-item:hover .post-title {
+      color: var(--text-secondary);
+    }
+
+    .post-meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .post-title {
+      font-family: 'Lora', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      line-height: 1.4;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+      transition: color 0.15s;
+    }
+
+    .post-excerpt {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: var(--tag-bg);
+      color: var(--text-muted);
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-top: 0.75rem;
+    }
+
+    /* ABOUT */
+    .about-section h2 {
+      font-family: 'Lora', serif;
+      font-size: 1.75rem;
+      font-weight: 400;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .about-section p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 1.1rem;
+      max-width: 520px;
+    }
+
+    /* SINGLE POST */
+    .post-full .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-bottom: 2rem;
+      transition: color 0.15s;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+
+    .post-full .back:hover { color: var(--text-primary); }
+
+    .post-full .back svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .post-full h1 {
+      font-family: 'Lora', serif;
+      font-size: 1.85rem;
+      font-weight: 400;
+      line-height: 1.3;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .post-full .post-meta {
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .post-full p {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.85;
+      margin-bottom: 1.25rem;
+    }
+
+    .post-full p:last-child { margin-bottom: 0; }
+
+    /* FOOTER */
+    footer {
+      margin-top: 4rem;
+      padding: 1.75rem 0 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.6rem; }
+      .post-full h1 { font-size: 1.5rem; }
+      footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <span class="nav-logo">Your Name</span>
+      <ul class="nav-links">
+        <li><a onclick="show('home')">Home</a></li>
+        <li><a onclick="show('about')">About</a></li>
+      </ul>
+    </nav>
+
+    <!-- HOME -->
+    <div id="home" class="page active">
+      <div class="hero">
+        <h1>A blog about everyday life.</h1>
+        <p>Thoughts on slow mornings, things I'm learning, and everything in between.</p>
+      </div>
+
+      <p class="section-label">Recent posts</p>
+
+      <div class="post-list">
+        <div class="post-item" onclick="show('post1')">
+          <p class="post-meta">May 22, 2026 &middot; 4 min read</p>
+          <p class="post-title">Why I stopped checking my phone first thing in the morning</p>
+          <p class="post-excerpt">A small habit change that made my mornings feel completely different.</p>
+          <span class="tag">habits</span>
+        </div>
+
+        <div class="post-item" onclick="show('post2')">
+          <p class="post-meta">May 10, 2026 &middot; 3 min read</p>
+          <p class="post-title">The cookbook I keep going back to</p>
+          <p class="post-excerpt">It's not flashy, but it's taught me more about cooking than anything else.</p>
+          <span class="tag">food</span>
+        </div>
+
+        <div class="post-item" onclick="show('post3')">
+          <p class="post-meta">April 28, 2026 &middot; 5 min read</p>
+          <p class="post-title">Notes from a week without social media</p>
+          <p class="post-excerpt">What I noticed, what I missed, and whether I'd do it again.</p>
+          <span class="tag">reflection</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="about" class="page">
+      <div class="about-section">
+        <h2>Hey, I'm [Your Name].</h2>
+        <p>I write about the small stuff — morning routines, books, food, and the occasional bigger thought about how I want to live.</p>
+        <p>I started this blog because I wanted a place to think out loud. No niche, no strategy, just honest writing.</p>
+        <p>I'm based in [your city]. When I'm not writing here, I'm probably on a walk or making coffee.</p>
+      </div>
+    </div>
+
+    <!-- POST 1 -->
+    <div id="post1" class="page">
+      <div class="post-full">
+        <a class="back" onclick="show('home')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back
+        </a>
+        <h1>Why I stopped checking my phone first thing in the morning</h1>
+        <div class="post-meta">
+          May 22, 2026 &middot; 4 min read
+          <span class="tag" style="margin-top:0;">habits</span>
+        </div>
+        <p>For years, my alarm went off and within thirty seconds I was scrolling. Emails, headlines, whatever showed up. I told myself it was just staying informed.</p>
+        <p>Then one morning I put my phone across the room before bed, almost by accident. When I woke up, I had to actually get up to turn the alarm off. By that point I was standing, which meant I was awake, which meant the scrolling window had closed.</p>
+        <p>That one small friction changed everything. My mornings got quieter. I started noticing what I actually wanted to do — make coffee, sit by the window, think about the day ahead — instead of reacting to whatever the internet handed me first.</p>
+        <p>I'm not saying phones are bad. I'm just saying: the first thirty minutes of your day are yours. You don't have to give them away.</p>
+      </div>
+    </div>
+
+    <!-- POST 2 -->
+    <div id="post2" class="page">
+      <div class="post-full">
+        <a class="back" onclick="show('home')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back
+        </a>
+        <h1>The cookbook I keep going back to</h1>
+        <div class="post-meta">
+          May 10, 2026 &middot; 3 min read
+          <span class="tag" style="margin-top:0;">food</span>
+        </div>
+        <p>I own a lot of cookbooks. Most of them are beautiful objects that I flip through once and shelve. But there's one that's held together with a rubber band now because I've used it so much.</p>
+        <p>What makes it different isn't the recipes — it's that it explains the why. Why you salt pasta water, why you let meat rest, why high heat matters for a sear. Once you understand the principles, you stop needing to follow recipes so carefully.</p>
+        <p>The best cooking knowledge isn't a list of dishes. It's a way of thinking about food. Find a book that teaches you that, and you'll use it forever.</p>
+      </div>
+    </div>
+
+    <!-- POST 3 -->
+    <div id="post3" class="page">
+      <div class="post-full">
+        <a class="back" onclick="show('home')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Back
+        </a>
+        <h1>Notes from a week without social media</h1>
+        <div class="post-meta">
+          April 28, 2026 &middot; 5 min read
+          <span class="tag" style="margin-top:0;">reflection</span>
+        </div>
+        <p>I didn't announce it or make it a thing. I just deleted the apps on a Sunday and decided to see what a week felt like without them.</p>
+        <p>The first two days were weird. I kept picking up my phone and having nothing to do with it. I noticed how many times a day I reached for it out of pure habit — not boredom, not curiosity, just reflex.</p>
+        <p>By day four something shifted. I started finishing things. Books, tasks, conversations. The low-level background noise I didn't know I had went quiet.</p>
+        <p>I went back to social media after the week. But I went back differently — less automatically, more deliberately. That felt like enough of a win.</p>
+      </div>
+    </div>
+
+    <footer>
+      <span>Your Name &copy; 2026</span>
+      <span>Built with GitHub Pages</span>
+    </footer>
+  </div>
+
+  <script>
+    function show(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -203,10 +203,10 @@
     </footer>
   </div>
 
-  <script>
+<script>
     // ============================================================
-    //  ADD NEW PLACES HERE IN THIS FORMAT. 
-    //  ORDER DOES NOT MATTER AUTO SORTS BEST TO WORST.
+    //  ADD NEW PLACES HERE IN THIS FORMAT.
+    //  ORDER DOES NOT MATTER — AUTO SORTS BEST TO WORST.
     // ============================================================
     const ratings = [
       {
@@ -214,32 +214,28 @@
         location: "2900 Steeles Ave E",
         date: "May 2026",
         type: "chicken",
-        note: "15$ for a hearty lunch plate that it wouldn’t be a crime to save for later. They got it out quick, had solid toppings selection, and no problem with asking for extras. A good stop on the way down from Stouffville after golf. Complementary waters so long as we left a review sealed the deal for us. ",
-        tags: ["Shawarma Plate", "Austin & Jamie],
+        note: "15$ for a hearty lunch plate that it wouldn't be a crime to save for later. They got it out quick, had solid toppings selection, and no problem with asking for extras. A good stop on the way down from Stouffville after golf. Complementary waters so long as we left a review sealed the deal for us.",
+        tags: ["Shawarma Plate", "Austin & Jamie"],
         taste: 38,
         value: 19,
         experience: 22
-    }
+      }
     ];
     // ============================================================
 
-    let activeFilter = 'all';
-
     function total(r) { return r.taste + r.value + r.experience; }
 
-    function renderRatings(filter) {
+    function renderRatings() {
       const container = document.getElementById('ratingCards');
       const empty = document.getElementById('emptyState');
-      const filtered = ratings
-        .filter(r => filter === 'all' || (filter === 'top' && total(r) >= 80) || r.type === filter)
-        .sort((a, b) => total(b) - total(a));
-      if (filtered.length === 0) {
+      const sorted = ratings.sort((a, b) => total(b) - total(a));
+      if (sorted.length === 0) {
         container.innerHTML = '';
         empty.style.display = 'block';
         return;
       }
       empty.style.display = 'none';
-      container.innerHTML = filtered.map(r => {
+      container.innerHTML = sorted.map(r => {
         const score = total(r);
         const isTop = score >= 80;
         const tagsHTML = r.tags.map(t => `<span class="tag">${t}</span>`).join('');
@@ -272,18 +268,19 @@
           </div>`;
       }).join('');
     }
+
     function show(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      ['home','about','ratings'].forEach(n => {
+      ['home', 'about', 'ratings'].forEach(n => {
         const el = document.getElementById('nav-' + n);
         if (el) el.classList.toggle('active', n === id);
       });
-      if (id === 'ratings') renderRatings(activeFilter);
+      if (id === 'ratings') renderRatings();
     }
 
-    renderRatings('all');
+    renderRatings();
   </script>
 </body>
 </html>

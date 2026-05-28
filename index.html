@@ -102,38 +102,23 @@
       <p class="empty-state" id="emptyState">No ratings yet. Check back soon.</p>
     </div>
 
-    <!-- BLOG -->
+<!-- BLOG -->
     <div id="blog" class="page">
       <div class="hero">
         <h1>The Toronto Shawarma Scene.</h1>
         <p>We aren't just searching for the best shawarma. We're also trying to find places serving good authentic food that aren't getting as much attention as they deserve.</p>
       </div>
       <p class="section-label">Recent posts</p>
-      <div class="post-list">
-        <div class="post-item" onclick="show('post1')">
-          <p class="post-meta">May 27, 2026 &middot; 4 min read</p>
-          <p class="post-title">The Idea</p>
-          <p class="post-excerpt">Whenever we had days off, we'd find ourselves in some random part of Toronto at a Shawarma place in a neighbourhood we'd never been to. So we figured we might as well create somewhere for people looking for new places in cool areas, centred around some of the best food in Toronto.</p>
-          <span class="tag">Idea</span>
-        </div>
-        <div class="post-item" onclick="show('post2')">
-          <p class="post-meta">2020&ndash;2026 &middot; 2 min read</p>
-          <p class="post-title">The Old Tier System</p>
-          <p class="post-excerpt">Here's a look at a few places we visited in the past, and the more casual ranking style.</p>
-          <span class="tag">food</span>
-        </div>
-        <div class="post-item" onclick="show('post3')">
-          <p class="post-meta">April 28, 2026 &middot; 5 min read</p>
-          <p class="post-title">Notes from a week without social media</p>
-          <p class="post-excerpt">What I noticed, what I missed, and whether I'd do it again.</p>
-          <span class="tag">reflection</span>
-        </div>
-        <div class="post-item" onclick="show('post4')">
-          <p class="post-meta">April 28, 2026 &middot; 5 min read</p>
-          <p class="post-title">Notes from a week without social media</p>
-          <p class="post-excerpt">What I noticed, what I missed, and whether I'd do it again.</p>
-          <span class="tag">reflection</span>
-        </div>
+      <div class="post-list" id="postList"></div>
+    </div>
+
+    <!-- SINGLE POST (reused for all posts) -->
+    <div id="post" class="page">
+      <div class="post-full">
+        <a class="back" onclick="show('blog')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>Back</a>
+        <h1 id="postTitle"></h1>
+        <div class="post-meta" id="postMeta"></div>
+        <div id="postBody"></div>
       </div>
     </div>
 
@@ -208,6 +193,46 @@
 
   <script>
     // ============================================================
+    //  ADD NEW BLOG POSTS HERE
+    // ============================================================
+    const posts = [
+      {
+        title: "The Idea",
+        date: "May 27, 2026",
+        read: "4 min read",
+        tag: "Idea",
+        preamble: "Whenever we had days off, we'd find ourselves in some random part of Toronto at a Shawarma place in a neighbourhood we'd never been to. So we figured we might as well create somewhere for people looking for new places in cool areas, centred around some of the best food in Toronto.",
+        post: `<p>These places are awesome, and often run by such great people, often families that have built the business from scratch. I was in the west end at a place called Shadi Shawarma recently that we always used to go to after playing at Scarlett Woods in high school, a good 5&ndash;7 years ago. I walk in and the first thing the guy says is "I remember when you guys used to come in here after golf, how have you been".</p>
+        <p>First, I look a lot different than I did then. Second, I'm from Cabbagetown and this place is at Bloor and Runnymede. It's not like I'm passing by all the time. I genuinely don't know how he remembered me, but he did and that was pretty cool.</p>
+        <p>Every interaction matters to these folks. That's why these places are special and that's probably why we keep going back. Because you always feel welcomed there.</p>`
+      },
+      {
+        title: "The Old Tier List",
+        date: "2020&ndash;2026",
+        read: "2 min read",
+        tag: "food",
+        preamble: "Here's a look at a few places we visited in the past, and the more casual ranking style.",
+        post: `<p>S Tier: Shabi Shawarma, Shawarma Q, Shawarma Max, Flaming Stove</p>
+        <p>A Tier: Maybes, Ali Baba, Pitaland (Flemingdon), Dr Shawarma (Kingston), Pitaland (Gerrard), Mashawanee (Halifax), Pita Way.</p>
+        <p>B Tier: Shawarma Rox, Mevame (Lawrence), Mishwar, Pita Lite, Jubilee &amp; Triple A (Halifax), Doner G, 7 Peppers (Halifax).</p>
+        <p>C Tier: Osmows, Pitaland (Sherbourne), Villa Madina</p>
+        <p>D Tier: Mezzas (Halifax)</p>`
+      },
+      {
+        title: "Notes from a week without social media",
+        date: "April 28, 2026",
+        read: "5 min read",
+        tag: "reflection",
+        preamble: "What I noticed, what I missed, and whether I'd do it again.",
+        post: `<p>I didn't announce it or make it a thing. I just deleted the apps on a Sunday and decided to see what a week felt like without them.</p>
+        <p>The first two days were weird. I kept picking up my phone and having nothing to do with it. I noticed how many times a day I reached for it out of pure habit — not boredom, not curiosity, just reflex.</p>
+        <p>By day four something shifted. I started finishing things. Books, tasks, conversations. The low-level background noise I didn't know I had went quiet.</p>
+        <p>I went back to social media after the week. But I went back differently — less automatically, more deliberately. That felt like enough of a win.</p>`
+      }
+    ];
+    // ============================================================
+
+    // ============================================================
     //  ADD NEW PLACES HERE IN THIS FORMAT.
     //  ORDER DOES NOT MATTER — AUTO SORTS BEST TO WORST.
     // ============================================================
@@ -238,6 +263,25 @@
     // ============================================================
 
     function total(r) { return r.taste + r.value + r.experience; }
+
+    function renderBlog() {
+      const list = document.getElementById('postList');
+      list.innerHTML = posts.map((p, i) => `
+        <div class="post-item" onclick="openPost(${i})">
+          <p class="post-meta">${p.date} &middot; ${p.read}</p>
+          <p class="post-title">${p.title}</p>
+          <p class="post-excerpt">${p.preamble}</p>
+          <span class="tag">${p.tag}</span>
+        </div>`).join('');
+    }
+
+    function openPost(i) {
+      const p = posts[i];
+      document.getElementById('postTitle').innerHTML = p.title;
+      document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
+      document.getElementById('postBody').innerHTML = p.post;
+      show('post');
+    }
 
     function renderRatings() {
       const container = document.getElementById('ratingCards');
@@ -292,9 +336,10 @@
         if (el) el.classList.toggle('active', n === id);
       });
       if (id === 'ratings') renderRatings();
+      if (id === 'blog') renderBlog();
     }
 
-    window.addEventListener('load', renderRatings);
+    window.addEventListener('load', () => { renderRatings(); renderBlog(); });
   </script>
 </body>
 </html>

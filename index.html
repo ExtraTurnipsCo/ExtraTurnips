@@ -206,6 +206,7 @@ post: `<p>The first thing I noticed about Laziza is the smell of shawarma, prope
         taste: 40.5,
         value: 16.75,
         experience: 21.75
+        Post: 2
       }
     ];
     // ============================================================
@@ -253,7 +254,7 @@ post: `<p>The first thing I noticed about Laziza is the smell of shawarma, prope
             </div>
             <div class="rating-card-meta">${r.location} &middot; ${r.date}</div>
             <p class="rating-card-note">${r.note}</p>
-            <div class="rating-card-tags">${tagsHTML}</div>
+            <div class="rating-card-tags">${tagsHTML}</div>${r.post !== undefined ? `<a onclick="openPost(${r.post})" style="display:inline-block;margin-top:0.5rem;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">Read the post →</a>` : ''}
             <div class="subscores">
               <div class="subscore-row">
                 <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>

@@ -22,7 +22,7 @@
     body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: var(--bg); color: var(--text-primary); line-height: 1.7; min-height: 100vh; }
     .container { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; }
     nav { padding: 2rem 0 1.75rem; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
-    .nav-logo { font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 400; color: var(--text-primary); letter-spacing: -0.01em; cursor: pointer; }
+    .nav-logo { font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 400; color: var(--text-primary); letter-spacing: -0.01em; cursor: pointer; display: flex; align-items: center; }
     .nav-links { display: flex; gap: 1.75rem; list-style: none; }
     .nav-links a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; letter-spacing: 0.04em; cursor: pointer; transition: color 0.15s; }
     .nav-links a:hover, .nav-links a.active { color: var(--text-primary); }
@@ -49,9 +49,39 @@
     .post-full .post-meta { padding-bottom: 1.75rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; }
     .post-full p { font-size: 1rem; color: var(--text-secondary); line-height: 1.85; margin-bottom: 1.25rem; }
     .post-full p:last-child { margin-bottom: 0; }
-    .ratings-header { margin-bottom: 2.5rem; }
+    .ratings-header { margin-bottom: 2rem; }
     .ratings-header h1 { font-family: 'Lora', serif; font-size: 2rem; font-weight: 400; line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
     .ratings-header p { font-size: 0.95rem; color: var(--text-secondary); }
+
+    /* Tab switcher */
+    .tab-bar { display: flex; gap: 0; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .tab-btn { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0; margin-right: 2rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text-primary); }
+    .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+
+    /* Submit button */
+    .submit-btn { display: inline-block; margin-bottom: 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); cursor: pointer; background: none; transition: all 0.15s; }
+    .submit-btn:hover { color: var(--text-primary); border-color: var(--text-primary); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 4px; padding: 2rem; position: relative; }
+    .modal h2 { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.4rem; }
+    .modal p.modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.75rem; }
+    .modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: var(--text-primary); }
+    .form-row { margin-bottom: 1.1rem; }
+    .form-row label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .form-row input, .form-row select, .form-row textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.5rem 0.75rem; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
+    .form-row textarea { resize: vertical; min-height: 90px; }
+    .form-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+    .form-submit { width: 100%; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.65rem; background: var(--accent); color: #FAEEDD; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .form-submit:hover { opacity: 0.85; }
+    .form-success { display: none; text-align: center; padding: 2rem 0; }
+    .form-success p { font-family: 'Lora', serif; font-size: 1.1rem; font-style: italic; color: var(--text-secondary); }
+
     .rating-card { padding: 1.75rem 0; border-bottom: 1px solid var(--border); }
     .rating-card:first-child { border-top: 1px solid var(--border); }
     .rating-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.35rem; }
@@ -70,11 +100,13 @@
     .subscore-fill { height: 100%; background: var(--accent); border-radius: 2px; }
     .subscore-val { font-size: 0.72rem; color: var(--text-secondary); width: 2rem; text-align: right; flex-shrink: 0; }
     .empty-state { padding: 3rem 0; font-size: 0.9rem; color: var(--text-muted); font-style: italic; display: none; }
+    .community-submitter { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 0.5rem; }
     footer { margin-top: 4rem; padding: 1.75rem 0 2rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
     @media (max-width: 480px) {
       .hero h1, .ratings-header h1 { font-size: 1.6rem; }
       .post-full h1 { font-size: 1.5rem; }
       footer { flex-direction: column; gap: 0.5rem; text-align: center; }
+      .form-scores { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -82,9 +114,9 @@
   <div class="container">
     <nav>
       <span class="nav-logo" onclick="show('ratings')">
-  <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" style="height:128px; width:auto; vertical-align:middle; margin-right:12px;">
-  Extra Turnips
-</span>
+        <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" style="height:64px; width:auto; vertical-align:middle; margin-right:12px;">
+        Extra Turnips
+      </span>
       <ul class="nav-links">
         <li><a id="nav-ratings" onclick="show('ratings')" class="active">Ratings</a></li>
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
@@ -95,14 +127,25 @@
     <!-- RATINGS -->
     <div id="ratings" class="page active">
       <div class="ratings-header">
-        <h1>The Ratings</h1>
-        <p>Each Shawarma spot is ranked on taste, value, and expereince. The score is weighted 50% taste, 25% each for value and experience. A total score out of 100 is given.</p>
+        <h1>The Ratings.</h1>
+        <p>Each spot is ranked on taste, value, and experience. Weighted 50% taste, 25% each for value and experience. Total score out of 100.</p>
       </div>
-      <div id="ratingCards"></div>
-      <p class="empty-state" id="emptyState">No ratings yet. Check back soon.</p>
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-ours" onclick="switchTab('ours')">Austin & Jamie</button>
+        <button class="tab-btn" id="tab-community" onclick="switchTab('community')">Community</button>
+      </div>
+      <div id="oursPanel">
+        <div id="ratingCards"></div>
+        <p class="empty-state" id="emptyState">No ratings yet. Check back soon.</p>
+      </div>
+      <div id="communityPanel" style="display:none;">
+        <button class="submit-btn" onclick="openModal()">+ Submit a Rating</button>
+        <div id="communityCards"></div>
+        <p class="empty-state" id="communityEmptyState">No community ratings yet. Be the first to submit one.</p>
+      </div>
     </div>
 
-<!-- BLOG -->
+    <!-- BLOG -->
     <div id="blog" class="page">
       <div class="hero">
         <h1>The Toronto Shawarma Scene.</h1>
@@ -112,7 +155,7 @@
       <div class="post-list" id="postList"></div>
     </div>
 
-    <!-- SINGLE POST (reused for all posts) -->
+    <!-- SINGLE POST -->
     <div id="post" class="page">
       <div class="post-full">
         <a class="back" onclick="show('blog')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>Back</a>
@@ -128,7 +171,7 @@
         <div style="margin-bottom: 2.5rem;">
           <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom: 1rem;">
             <h2 style="font-family:'Lora',serif; font-size:1.75rem; font-weight:400; letter-spacing:-0.02em;">The Founders</h2>
-            <a href="https://www.instagram.com/jamie.black3" target="_blank" style="font-size:0.78rem; color:var(--text-muted); text-decoration:none; letter-spacing:0.04em; transition:color 0.15s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">@jamie.black3</a>
+            <a href="https://www.instagram.com/YOURHANDLE" target="_blank" style="font-size:0.78rem; color:var(--text-muted); text-decoration:none; letter-spacing:0.04em; transition:color 0.15s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">@YOURHANDLE</a>
           </div>
           <img src="FOUNDERS_PHOTO.jpg" alt="Austin and Jamie" style="width:100%; border-radius:4px; display:block;">
         </div>
@@ -139,11 +182,72 @@
         <p>Every interaction matters to these folks. That's why these places are special and that's probably why we keep going back. Not just because of the great food but because you always feel welcomed there.</p>
       </div>
     </div>
-    
+
     <footer>
       <span>Extra Turnips &copy; 2026</span>
       <span>Built with GitHub Pages</span>
     </footer>
+  </div>
+
+  <!-- SUBMISSION MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <h2>Submit a Rating</h2>
+      <p class="modal-sub">Your submission will be reviewed before it goes live.</p>
+      <div id="formWrap">
+        <form name="community-rating" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" enctype="multipart/form-data" onsubmit="handleSubmit(event)">
+          <input type="hidden" name="form-name" value="community-rating" />
+          <input type="hidden" name="bot-field" />
+          <div class="form-row">
+            <label>Your Name</label>
+            <input type="text" name="submitter" required placeholder="e.g. Alex T." />
+          </div>
+          <div class="form-row">
+            <label>Place Name</label>
+            <input type="text" name="name" required placeholder="e.g. Shawarma Palace" />
+          </div>
+          <div class="form-row">
+            <label>Location</label>
+            <input type="text" name="location" required placeholder="e.g. 123 King St W, Toronto" />
+          </div>
+          <div class="form-row">
+            <label>Type</label>
+            <select name="type">
+              <option value="chicken">Chicken</option>
+              <option value="lamb">Lamb</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Your Review</label>
+            <textarea name="note" required placeholder="What did you think?"></textarea>
+          </div>
+          <div class="form-scores">
+            <div class="form-row">
+              <label>Taste /50</label>
+              <input type="number" name="taste" min="0" max="50" step="0.5" required placeholder="e.g. 38" />
+            </div>
+            <div class="form-row">
+              <label>Value /25</label>
+              <input type="number" name="value" min="0" max="25" step="0.5" required placeholder="e.g. 19" />
+            </div>
+            <div class="form-row">
+              <label>Experience /25</label>
+              <input type="number" name="experience" min="0" max="25" step="0.5" required placeholder="e.g. 20" />
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Photo or Video (optional)</label>
+            <input type="file" name="photo" accept="image/*,video/*" />
+          </div>
+          <button type="submit" class="form-submit">Submit Rating</button>
+        </form>
+      </div>
+      <div class="form-success" id="formSuccess">
+        <p>Thanks for the submission — we'll review it shortly.</p>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -173,23 +277,22 @@
         <p>C Tier: Osmows, Pitaland (Sherbourne), Villa Madina</p>
         <p>D Tier: Mezzas (Halifax)</p>`
       },
-      { 
-        title: "Laziza Mediterranean Cuisine Post", 
-        date: "May 28, 2026", 
-        read: "5 min read", 
-        tag: "Shawarma Post", 
+      {
+        title: "Laziza Mediterranean Cuisine",
+        date: "May 28, 2026",
+        read: "5 min read",
+        tag: "Shawarma Post",
         preamble: "Laziza is a nicely located shawarma spot on Bloor, I would recommend eating in as they have decent seating and friendly staff.",
-post: `<p>The first thing I noticed about Laziza is the smell of shawarma, proper spits with an onion on top, and their friendly staff. The onion on top did not create noticeable taste difference, but I admire every effort that goes into creating a good shawarma.</p>
-<p>The worker asked minimal questions about how I would like my shawarma, but was engaging, ensuring I got the rice, potatoes, and toppings I wanted. A shawarma spot wins me over when the staff puts on garlic sauce, tahini, hot sauce without asking. Assuming my demographic and knowing what the proper sauce ratios are for me is what I hope for. This worker asked no questions about sauce he just went right to work. Surprisingly, he teetered the line of being too spicy, rather than lowballing me, which is rare, and I respected it.</p>
-<p>Laziza was jointly rated by Austin and I (Jamie), I was slightly higher, and the score was averaged. No pickles given is a crime against all things' shawarma Laziza and I won't forget what you did. However, this spot must have a secret pickled turnip recipe. Their pickled turnips are the best I've ever tasted. I only wished they gave me more.</p>
-<p>Come on Laziza play to your strengths.</p>`
+        post: `<p>The first thing I noticed about Laziza is the smell of shawarma, proper spits with an onion on top, and their friendly staff. The onion on top did not create noticeable taste difference, but I admire every effort that goes into creating a good shawarma.</p>
+        <p>The worker asked minimal questions about how I would like my shawarma, but was engaging, ensuring I got the rice, potatoes, and toppings I wanted. A shawarma spot wins me over when the staff puts on garlic sauce, tahini, hot sauce without asking. Assuming my demographic and knowing what the proper sauce ratios are for me is what I hope for. This worker asked no questions about sauce he just went right to work. Surprisingly, he teetered the line of being too spicy, rather than lowballing me, which is rare, and I respected it.</p>
+        <p>Laziza was jointly rated by Austin and I (Jamie), I was slightly higher, and the score was averaged. No pickles given is a crime against all things shawarma Laziza and I won't forget what you did. However, this spot must have a secret pickled turnip recipe. Their pickled turnips are the best I've ever tasted. I only wished they gave me more.</p>
+        <p>Come on Laziza play to your strengths.</p>`
       }
-      ];
+    ];
     // ============================================================
 
     // ============================================================
-    //  ADD NEW PLACES HERE IN THIS FORMAT.
-    //  ORDER DOES NOT MATTER — AUTO SORTS BEST TO WORST.
+    //  ADD NEW PLACES HERE — AUTO SORTS BEST TO WORST
     // ============================================================
     const ratings = [
       {
@@ -214,23 +317,93 @@ post: `<p>The first thing I noticed about Laziza is the smell of shawarma, prope
         value: 16.75,
         experience: 21.75,
         post: 2
-      },
-      {
-        name: "Flaming Stove",
-        location: "21 Davisville Avenue",
-        date: "May 2026",
-        type: "chicken",
-        note: "This place is elite. Knocks it out of the park on taste, you will struggle to find better in the GTA. The Saj style wraps are expertly crafted with an amazing cross-section and the wrap holds up until the last bite. The only knock we had was the toppings and the sauces. The toppings were good not great. Sauces were confusing and too mayo-ey for our liking, despite the wrap being dry at times. Our guest reviewer Eden loved the turnips and said this spot has the best shawarma she has ever tasted (She is inexpereinced). Finally on value, we are two big hungry guys and each had our own; however, this wrap could easily be split into two meals, which is why value was high despite an above average cost for the area.",
-        tags: ["Shawarma Wrap", "Austin & Jamie", "Guest: Eden"],
-        taste: 46.75,
-        value: 22.5,
-        experience: 20.5,
-        post: 0
       }
     ];
     // ============================================================
 
+    // ============================================================
+    //  APPROVED COMMUNITY RATINGS — paste approved submissions here
+    //  same format as above, add "submitter: name" field
+    // ============================================================
+    const communityRatings = [
+      // example (delete this when you have real ones):
+      // {
+      //   name: "Al Salam",
+      //   location: "Rexdale",
+      //   date: "Jun 2026",
+      //   type: "mixed",
+      //   submitter: "Alex T.",
+      //   note: "Incredible mixed plate, huge portions.",
+      //   tags: ["Mixed"],
+      //   taste: 42,
+      //   value: 21,
+      //   experience: 20
+      // }
+    ];
+    // ============================================================
+
+    let activeTab = 'ours';
+
     function total(r) { return r.taste + r.value + r.experience; }
+
+    function ratingCardHTML(r, showSubmitter) {
+      const score = Math.round(total(r) * 10) / 10;
+      const isTop = score >= 80;
+      const tagsHTML = r.tags.map(t => `<span class="tag">${t}</span>`).join('');
+      return `
+        <div class="rating-card">
+          <div class="rating-card-top">
+            <span class="rating-card-name">${r.name}</span>
+            <span class="rating-score${isTop ? ' top-pick' : ''}">${score} <span class="denom">/ 100</span></span>
+          </div>
+          ${showSubmitter && r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : ''}
+          <div class="rating-card-meta">${r.location} &middot; ${r.date}</div>
+          <p class="rating-card-note">${r.note}</p>
+          <div class="rating-card-tags">${tagsHTML}</div>
+          ${r.post !== undefined ? `<a onclick="openPost(${r.post})" style="display:inline-block;margin-top:0.5rem;margin-bottom:1rem;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;padding:5px 14px;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);">Read the post →</a>` : ''}
+          <div class="subscores">
+            <div class="subscore-row">
+              <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>
+              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.taste/50)*100}%"></div></div>
+              <span class="subscore-val">${r.taste}</span>
+            </div>
+            <div class="subscore-row">
+              <span class="subscore-lbl">Value <span class="subscore-lbl-max">/25</span></span>
+              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.value/25)*100}%"></div></div>
+              <span class="subscore-val">${r.value}</span>
+            </div>
+            <div class="subscore-row">
+              <span class="subscore-lbl">Experience <span class="subscore-lbl-max">/25</span></span>
+              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.experience/25)*100}%"></div></div>
+              <span class="subscore-val">${r.experience}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderRatings() {
+      const container = document.getElementById('ratingCards');
+      const empty = document.getElementById('emptyState');
+      const sorted = [...ratings].sort((a, b) => total(b) - total(a));
+      container.innerHTML = sorted.map(r => ratingCardHTML(r, false)).join('');
+      empty.style.display = sorted.length === 0 ? 'block' : 'none';
+    }
+
+    function renderCommunity() {
+      const container = document.getElementById('communityCards');
+      const empty = document.getElementById('communityEmptyState');
+      const sorted = [...communityRatings].sort((a, b) => total(b) - total(a));
+      container.innerHTML = sorted.map(r => ratingCardHTML(r, true)).join('');
+      empty.style.display = sorted.length === 0 ? 'block' : 'none';
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('tab-ours').classList.toggle('active', tab === 'ours');
+      document.getElementById('tab-community').classList.toggle('active', tab === 'community');
+      document.getElementById('oursPanel').style.display = tab === 'ours' ? 'block' : 'none';
+      document.getElementById('communityPanel').style.display = tab === 'community' ? 'block' : 'none';
+    }
 
     function renderBlog() {
       const list = document.getElementById('postList');
@@ -251,48 +424,30 @@ post: `<p>The first thing I noticed about Laziza is the smell of shawarma, prope
       show('post');
     }
 
-    function renderRatings() {
-      const container = document.getElementById('ratingCards');
-      const empty = document.getElementById('emptyState');
-      const sorted = [...ratings].sort((a, b) => total(b) - total(a));
-      if (sorted.length === 0) {
-        container.innerHTML = '';
-        empty.style.display = 'block';
-        return;
-      }
-      empty.style.display = 'none';
-      container.innerHTML = sorted.map(r => {
-        const score = Math.round(total(r) * 10) / 10;
-        const isTop = score >= 80;
-        const tagsHTML = r.tags.map(t => `<span class="tag">${t}</span>`).join('');
-        return `
-          <div class="rating-card">
-            <div class="rating-card-top">
-              <span class="rating-card-name">${r.name}</span>
-              <span class="rating-score${isTop ? ' top-pick' : ''}">${score} <span class="denom">/ 100</span></span>
-            </div>
-            <div class="rating-card-meta">${r.location} &middot; ${r.date}</div>
-            <p class="rating-card-note">${r.note}</p>
-            <div class="rating-card-tags">${tagsHTML}</div>${r.post !== undefined ? `<a onclick="openPost(${r.post})" style="display:inline-block;margin-top:0.5rem;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-muted);cursor:pointer;text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:1px;">Read the post →</a>` : ''}
-            <div class="subscores">
-              <div class="subscore-row">
-                <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>
-                <div class="subscore-track"><div class="subscore-fill" style="width:${(r.taste/50)*100}%"></div></div>
-                <span class="subscore-val">${r.taste}</span>
-              </div>
-              <div class="subscore-row">
-                <span class="subscore-lbl">Value <span class="subscore-lbl-max">/25</span></span>
-                <div class="subscore-track"><div class="subscore-fill" style="width:${(r.value/25)*100}%"></div></div>
-                <span class="subscore-val">${r.value}</span>
-              </div>
-              <div class="subscore-row">
-                <span class="subscore-lbl">Experience <span class="subscore-lbl-max">/25</span></span>
-                <div class="subscore-track"><div class="subscore-fill" style="width:${(r.experience/25)*100}%"></div></div>
-                <span class="subscore-val">${r.experience}</span>
-              </div>
-            </div>
-          </div>`;
-      }).join('');
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      fetch('/', { method: 'POST', body: data })
+        .then(() => {
+          document.getElementById('formWrap').style.display = 'none';
+          document.getElementById('formSuccess').style.display = 'block';
+        })
+        .catch(() => alert('Something went wrong, please try again.'));
     }
 
     function show(id) {
@@ -303,11 +458,11 @@ post: `<p>The first thing I noticed about Laziza is the smell of shawarma, prope
         const el = document.getElementById('nav-' + n);
         if (el) el.classList.toggle('active', n === id);
       });
-      if (id === 'ratings') renderRatings();
+      if (id === 'ratings') { renderRatings(); renderCommunity(); }
       if (id === 'blog') renderBlog();
     }
 
-    window.addEventListener('load', () => { renderRatings(); renderBlog(); });
+    window.addEventListener('load', () => { renderRatings(); renderCommunity(); renderBlog(); });
   </script>
 </body>
 </html>

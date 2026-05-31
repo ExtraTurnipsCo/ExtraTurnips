@@ -464,5 +464,17 @@
 
     window.addEventListener('load', () => { renderRatings(); renderCommunity(); renderBlog(); });
   </script>
+  <form name="community-rating" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input type="hidden" name="form-name" value="community-rating" />
+  <input name="submitter" />
+  <input name="name" />
+  <input name="location" />
+  <select name="type"><option>chicken</option><option>lamb</option><option>mixed</option></select>
+  <textarea name="note"></textarea>
+  <input name="taste" type="number" />
+  <input name="value" type="number" />
+  <input name="experience" type="number" />
+  <input name="photo" type="file" />
+</form>
 </body>
 </html>

@@ -196,7 +196,7 @@
       <h2>Submit a Rating</h2>
       <p class="modal-sub">Your submission will be reviewed before it goes live.</p>
       <div id="formWrap">
-        <form name="community-rating" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" enctype="multipart/form-data" onsubmit="handleSubmit(event)">
+        <form name="community-rating" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="handleSubmit(event)">
           <input type="hidden" name="form-name" value="community-rating" />
           <input type="hidden" name="bot-field" />
           <div class="form-row">
@@ -446,23 +446,18 @@
       e.preventDefault();
       const form = e.target;
       const data = new FormData(form);
-      fetch('/.netlify/functions/submit', {
+      fetch('/', {
         method: 'POST',
-        body: new URLSearchParams(data)
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(data).toString()
       })
-      .then(res => res.json())
-      .then(result => {
+      .then(() => {
         document.getElementById('formWrap').style.display = 'none';
-        const success = document.getElementById('formSuccess');
-        success.style.display = 'block';
-        if (result.isAdmin) {
-          success.innerHTML = '<p>Submitted under Austin & Jamie — check your Netlify dashboard.</p>';
-        } else {
-          success.innerHTML = '<p>Thanks for the submission — we\'ll review it shortly.</p>';
-        }
+        document.getElementById('formSuccess').style.display = 'block';
       })
       .catch(() => alert('Something went wrong, please try again.'));
     }
+    
     function show(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');

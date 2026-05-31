@@ -238,6 +238,10 @@
             </div>
           </div>
           <div class="form-row">
+            <label>Password (Austin & Jamie only — leave blank for community)</label>
+            <input type="password" name="BlackLovering20.04" placeholder="Leave blank if submitting as community" />
+          </div>
+          <div class="form-row">
             <label>Photo or Video (optional)</label>
             <input type="file" name="photo" accept="image/*,video/*" />
           </div>
@@ -442,14 +446,23 @@
       e.preventDefault();
       const form = e.target;
       const data = new FormData(form);
-      fetch('/', { method: 'POST', body: data })
-        .then(() => {
-          document.getElementById('formWrap').style.display = 'none';
-          document.getElementById('formSuccess').style.display = 'block';
-        })
-        .catch(() => alert('Something went wrong, please try again.'));
+      fetch('/.netlify/functions/submit', {
+        method: 'POST',
+        body: new URLSearchParams(data)
+      })
+      .then(res => res.json())
+      .then(result => {
+        document.getElementById('formWrap').style.display = 'none';
+        const success = document.getElementById('formSuccess');
+        success.style.display = 'block';
+        if (result.isAdmin) {
+          success.innerHTML = '<p>Submitted under Austin & Jamie — check your Netlify dashboard.</p>';
+        } else {
+          success.innerHTML = '<p>Thanks for the submission — we\'ll review it shortly.</p>';
+        }
+      })
+      .catch(() => alert('Something went wrong, please try again.'));
     }
-
     function show(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');

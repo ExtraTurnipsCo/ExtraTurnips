@@ -109,6 +109,8 @@
       .form-scores { grid-template-columns: 1fr; }
     }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -253,107 +255,58 @@
       </div>
     </div>
   </div>
-
-  <script>
+    <script>
     // ============================================================
-    //  ADD NEW BLOG POSTS HERE
+    //  FILL IN YOUR GITHUB DETAILS
     // ============================================================
-    const posts = [
-      {
-        title: "The Idea",
-        date: "May 27, 2026",
-        read: "4 min read",
-        tag: "Idea",
-        preamble: "Whenever we had days off, we'd find ourselves in some random part of Toronto at a Shawarma place in a neighbourhood we'd never been to. So we figured we might as well create somewhere for people looking for new places in cool areas, centred around some of the best food in Toronto.",
-        post: `<p>These places are awesome, and often run by such great people, often families that have built the business from scratch. I was in the west end at a place called Shadi Shawarma recently that we always used to go to after playing at Scarlett Woods in high school, a good 5&ndash;7 years ago. I walk in and the first thing the guy says is "I remember when you guys used to come in here after golf, how have you been".</p>
-        <p>First, I look a lot different than I did then. Second, I'm from Cabbagetown and this place is at Bloor and Runnymede. It's not like I'm passing by all the time. I genuinely don't know how he remembered me, but he did and that was pretty cool.</p>
-        <p>Every interaction matters to these folks. That's why these places are special and that's probably why we keep going back. Because you always feel welcomed there.</p>`
-      },
-      {
-        title: "The Old Tier List",
-        date: "2020&ndash;2026",
-        read: "2 min read",
-        tag: "food",
-        preamble: "Here's a look at a few places we visited in the past, and the more casual ranking style.",
-        post: `<p>S Tier: Shabi Shawarma, Shawarma Q, Shawarma Max, Flaming Stove</p>
-        <p>A Tier: Maybes, Ali Baba, Pitaland (Flemingdon), Dr Shawarma (Kingston), Pitaland (Gerrard), Mashawanee (Halifax), Pita Way.</p>
-        <p>B Tier: Shawarma Rox, Mevame (Lawrence), Mishwar, Pita Lite, Jubilee &amp; Triple A (Halifax), Doner G, 7 Peppers (Halifax).</p>
-        <p>C Tier: Osmows, Pitaland (Sherbourne), Villa Madina</p>
-        <p>D Tier: Mezzas (Halifax)</p>`
-      },
-      {
-        title: "Laziza Mediterranean Cuisine",
-        date: "May 28, 2026",
-        read: "5 min read",
-        tag: "Shawarma Post",
-        preamble: "Laziza is a nicely located shawarma spot on Bloor, I would recommend eating in as they have decent seating and friendly staff.",
-        post: `<p>The first thing I noticed about Laziza is the smell of shawarma, proper spits with an onion on top, and their friendly staff. The onion on top did not create noticeable taste difference, but I admire every effort that goes into creating a good shawarma.</p>
-        <p>The worker asked minimal questions about how I would like my shawarma, but was engaging, ensuring I got the rice, potatoes, and toppings I wanted. A shawarma spot wins me over when the staff puts on garlic sauce, tahini, hot sauce without asking. Assuming my demographic and knowing what the proper sauce ratios are for me is what I hope for. This worker asked no questions about sauce he just went right to work. Surprisingly, he teetered the line of being too spicy, rather than lowballing me, which is rare, and I respected it.</p>
-        <p>Laziza was jointly rated by Austin and I (Jamie), I was slightly higher, and the score was averaged. No pickles given is a crime against all things shawarma Laziza and I won't forget what you did. However, this spot must have a secret pickled turnip recipe. Their pickled turnips are the best I've ever tasted. I only wished they gave me more.</p>
-        <p>Come on Laziza play to your strengths.</p>`
-      }
-    ];
-    // ============================================================
-
-    // ============================================================
-    //  ADD NEW PLACES HERE — AUTO SORTS BEST TO WORST
-    // ============================================================
-    const ratings = [
-      {
-        name: "Lazeez",
-        location: "2900 Steeles Ave E",
-        date: "May 2026",
-        type: "chicken",
-        note: "15$ for a hearty lunch plate that it wouldn't be a crime to save for later. They got it out quick, had solid toppings selection, and no problem with asking for extras. A good stop on the way down from Stouffville after golf. Complementary waters so long as we left a review sealed the deal for us.",
-        tags: ["Shawarma Plate", "Austin & Jamie"],
-        taste: 38,
-        value: 19,
-        experience: 22
-      },
-      {
-        name: "Laziza Mediterranean Cuisine",
-        location: "950 Bloor St W",
-        date: "May 2026",
-        type: "chicken",
-        note: "Toppings were the all-stars of this plate so expect lots of different vegetables and remarkably crisp such as purple cabbage, hot peppers, and remarkably crisp pickled turnips. Definitely would've liked more of the turnips included. The chicken did its job, but no more. We got the lentil rice as the base which was a unique option that added a unique flavor you don't always see. Bar seating looking onto Bloor Street was a great touch that we took full advantage of.",
-        tags: ["Shawarma Plate", "Austin & Jamie"],
-        taste: 40.5,
-        value: 16.75,
-        experience: 21.75,
-        post: 2
-      }
-    ];
+    const GITHUB_USER = 'ExtraTurnipsCo';
+    const GITHUB_REPO = 'ExtraTurnips';
+    const GITHUB_BRANCH = 'main';
     // ============================================================
 
     // ============================================================
     //  APPROVED COMMUNITY RATINGS — paste approved submissions here
-    //  same format as above, add "submitter: name" field
     // ============================================================
-    const communityRatings = [
-      // example (delete this when you have real ones):
-      // {
-      //   name: "Al Salam",
-      //   location: "Rexdale",
-      //   date: "Jun 2026",
-      //   type: "mixed",
-      //   submitter: "Alex T.",
-      //   note: "Incredible mixed plate, huge portions.",
-      //   tags: ["Mixed"],
-      //   taste: 42,
-      //   value: 21,
-      //   experience: 20
-      // }
-    ];
+    const communityRatings = [];
     // ============================================================
 
+    function parseFrontmatter(text) {
+      const match = text.match(/^---\n([\s\S]*?)\n---([\s\S]*)$/);
+      if (!match) return null;
+      try {
+        const data = jsyaml.load(match[1]);
+        data._body = match[2].trim();
+        return data;
+      } catch(e) { return null; }
+    }
+
+    async function fetchCollection(folder) {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}?ref=${GITHUB_BRANCH}`);
+        if (!res.ok) return [];
+        const files = await res.json();
+        const items = await Promise.all(
+          files.filter(f => f.name.endsWith('.md')).map(async f => {
+            const fileRes = await fetch(f.download_url);
+            const text = await fileRes.text();
+            return parseFrontmatter(text);
+          })
+        );
+        return items.filter(Boolean);
+      } catch(e) { return []; }
+    }
+
+    let allRatings = [];
+    let allPosts = [];
     let activeTab = 'ours';
 
-    function total(r) { return r.taste + r.value + r.experience; }
+    function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
 
     function ratingCardHTML(r, showSubmitter) {
       const score = Math.round(total(r) * 10) / 10;
       const isTop = score >= 80;
-      const tagsHTML = r.tags.map(t => `<span class="tag">${t}</span>`).join('');
+      const tags = Array.isArray(r.tags) ? r.tags : [];
+      const tagsHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
       return `
         <div class="rating-card">
           <div class="rating-card-top">
@@ -364,7 +317,6 @@
           <div class="rating-card-meta">${r.location} &middot; ${r.date}</div>
           <p class="rating-card-note">${r.note}</p>
           <div class="rating-card-tags">${tagsHTML}</div>
-          ${r.post !== undefined ? `<a onclick="openPost(${r.post})" style="display:inline-block;margin-top:0.5rem;margin-bottom:1rem;font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;padding:5px 14px;border:1px solid var(--border);border-radius:20px;color:var(--text-muted);">Read the post →</a>` : ''}
           <div class="subscores">
             <div class="subscore-row">
               <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>
@@ -388,7 +340,7 @@
     function renderRatings() {
       const container = document.getElementById('ratingCards');
       const empty = document.getElementById('emptyState');
-      const sorted = [...ratings].sort((a, b) => total(b) - total(a));
+      const sorted = [...allRatings].sort((a, b) => total(b) - total(a));
       container.innerHTML = sorted.map(r => ratingCardHTML(r, false)).join('');
       empty.style.display = sorted.length === 0 ? 'block' : 'none';
     }
@@ -411,7 +363,7 @@
 
     function renderBlog() {
       const list = document.getElementById('postList');
-      list.innerHTML = posts.map((p, i) => `
+      list.innerHTML = allPosts.map((p, i) => `
         <div class="post-item" onclick="openPost(${i})">
           <p class="post-meta">${p.date} &middot; ${p.read}</p>
           <p class="post-title">${p.title}</p>
@@ -421,10 +373,10 @@
     }
 
     function openPost(i) {
-      const p = posts[i];
+      const p = allPosts[i];
       document.getElementById('postTitle').innerHTML = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
-      document.getElementById('postBody').innerHTML = p.post;
+      document.getElementById('postBody').innerHTML = marked.parse(p._body || '');
       show('post');
     }
 
@@ -457,7 +409,7 @@
       })
       .catch(() => alert('Something went wrong, please try again.'));
     }
-    
+
     function show(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -470,7 +422,20 @@
       if (id === 'blog') renderBlog();
     }
 
-    window.addEventListener('load', () => { renderRatings(); renderCommunity(); renderBlog(); });
+    async function loadContent() {
+      const [ratings, posts] = await Promise.all([
+        fetchCollection('content/ratings'),
+        fetchCollection('content/posts')
+      ]);
+      allRatings = ratings;
+      allPosts = posts;
+      renderRatings();
+      renderCommunity();
+      renderBlog();
+    }
+
+    window.addEventListener('load', loadContent);
+  </script>
   </script>
   <form name="community-rating" data-netlify="true" netlify-honeypot="bot-field" hidden>
   <input type="hidden" name="form-name" value="community-rating" />

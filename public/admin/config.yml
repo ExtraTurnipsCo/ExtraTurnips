@@ -1,0 +1,35 @@
+backend:
+  name: github
+  repo: ExtraTurnipsCo/ExtraTurnips
+  branch: main
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+collections:
+  - name: "ratings"
+    label: "Ratings"
+    folder: "content/ratings"
+    create: true
+    fields:
+      - { label: "Name", name: "name", widget: "string" }
+      - { label: "Location", name: "location", widget: "string" }
+      - { label: "Date", name: "date", widget: "string" }
+      - { label: "Type", name: "type", widget: "select", options: ["chicken", "lamb", "mixed"] }
+      - { label: "Note", name: "note", widget: "text" }
+      - { label: "Tags", name: "tags", widget: "list" }
+      - { label: "Taste /50", name: "taste", widget: "number", value_type: "float" }
+      - { label: "Value /25", name: "value", widget: "number", value_type: "float" }
+      - { label: "Experience /25", name: "experience", widget: "number", value_type: "float" }
+
+  - name: "posts"
+    label: "Blog Posts"
+    folder: "content/posts"
+    create: true
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Date", name: "date", widget: "string" }
+      - { label: "Read Time", name: "read", widget: "string" }
+      - { label: "Tag", name: "tag", widget: "string" }
+      - { label: "Preamble", name: "preamble", widget: "text" }
+      - { label: "Post Body", name: "post", widget: "markdown" }

@@ -107,6 +107,11 @@
       .post-full h1 { font-size: 1.5rem; }
       footer { flex-direction: column; gap: 0.5rem; text-align: center; }
       .form-scores { grid-template-columns: 1fr; }
+      nav { flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; }
+      .nav-logo { font-size: 1.1rem; }
+      .nav-logo img { height: 40px; }
+      .nav-links { gap: 1rem; }
+      .nav-links a { font-size: 0.78rem; }
     }
   </style>
 </head>
@@ -114,7 +119,7 @@
   <div class="container">
     <nav>
       <span class="nav-logo" onclick="show('ratings')">
-        <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" style="height:64px; width:auto; vertical-align:middle; margin-right:12px;">
+        <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" style="height:48px; width:auto; vertical-align:middle; margin-right:10px;">
         Extra Turnips
       </span>
       <ul class="nav-links">
@@ -341,7 +346,7 @@
       const p = allPosts[i];
       document.getElementById('postTitle').innerHTML = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
-      document.getElementById('postBody').innerHTML = p._body || p.post || p.body || '';
+      document.getElementById('postBody').innerHTML = p.post || p._body || p.body || '';
       show('post');
     }
 

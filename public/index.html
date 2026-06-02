@@ -376,7 +376,8 @@
       const p = allPosts[i];
       document.getElementById('postTitle').innerHTML = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
-      document.getElementById('postBody').innerHTML = marked.parse(p._body || '');
+      const body = p._body || p.post || p.body || '';
+      document.getElementById('postBody').innerHTML = body ? marked.parse(body) : '<p>No content yet.</p>';
       show('post');
     }
 

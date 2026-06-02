@@ -109,8 +109,6 @@
       .form-scores { grid-template-columns: 1fr; }
     }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -255,49 +253,16 @@
       </div>
     </div>
   </div>
-    <script>
-    // ============================================================
-    //  FILL IN YOUR GITHUB DETAILS
-    // ============================================================
-    const GITHUB_USER = 'ExtraTurnipsCo';
-    const GITHUB_REPO = 'ExtraTurnips';
-    const GITHUB_BRANCH = 'main';
-    // ============================================================
-
+  <script>
     // ============================================================
     //  APPROVED COMMUNITY RATINGS — paste approved submissions here
     // ============================================================
     const communityRatings = [];
     // ============================================================
 
-    function parseFrontmatter(text) {
-      const match = text.match(/^---\n([\s\S]*?)\n---([\s\S]*)$/);
-      if (!match) return null;
-      try {
-        const data = jsyaml.load(match[1]);
-        data._body = match[2].trim();
-        return data;
-      } catch(e) { return null; }
-    }
+    const allRatings = __RATINGS_DATA__;
+    const allPosts = __POSTS_DATA__;
 
-    async function fetchCollection(folder) {
-      try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${folder}?ref=${GITHUB_BRANCH}`);
-        if (!res.ok) return [];
-        const files = await res.json();
-        const items = await Promise.all(
-          files.filter(f => f.name.endsWith('.md')).map(async f => {
-            const fileRes = await fetch(f.download_url);
-            const text = await fileRes.text();
-            return parseFrontmatter(text);
-          })
-        );
-        return items.filter(Boolean);
-      } catch(e) { return []; }
-    }
-
-    let allRatings = [];
-    let allPosts = [];
     let activeTab = 'ours';
 
     function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
@@ -376,8 +341,7 @@
       const p = allPosts[i];
       document.getElementById('postTitle').innerHTML = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
-      const body = p._body || p.post || p.body || '';
-      document.getElementById('postBody').innerHTML = body ? marked.parse(body) : '<p>No content yet.</p>';
+      document.getElementById('postBody').innerHTML = p._body || p.post || p.body || '';
       show('post');
     }
 
@@ -423,21 +387,8 @@
       if (id === 'blog') renderBlog();
     }
 
-    async function loadContent() {
-      const [ratings, posts] = await Promise.all([
-        fetchCollection('content/ratings'),
-        fetchCollection('content/posts')
-      ]);
-      allRatings = ratings;
-      allPosts = posts;
-      renderRatings();
-      renderCommunity();
-      renderBlog();
-    }
-
-    window.addEventListener('load', loadContent);
-  </script>
-  </script>
+    window.addEventListener('load', () => { renderRatings(); renderCommunity(); renderBlog(); });
+  </script>    
   <form name="community-rating" data-netlify="true" netlify-honeypot="bot-field" hidden>
   <input type="hidden" name="form-name" value="community-rating" />
   <input name="submitter" />

@@ -101,9 +101,16 @@
     .subscore-val { font-size: 0.72rem; color: var(--text-secondary); width: 2rem; text-align: right; flex-shrink: 0; }
     .empty-state { padding: 3rem 0; font-size: 0.9rem; color: var(--text-muted); font-style: italic; display: none; }
     .community-submitter { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+    .ratings-meta { margin-bottom: 1.75rem; }
+    .ratings-meta p { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.85rem; }
+    .sort-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .sort-btn { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 14px; border: 1px solid var(--border); border-radius: 20px; background: none; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
+    .sort-btn:hover { color: var(--text-primary); border-color: var(--text-primary); }
+    .sort-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+    .rating-card-photo { width: 100%; max-height: 220px; object-fit: cover; border-radius: 3px; margin-top: 1rem; display: block; }
     footer { margin-top: 4rem; padding: 1.75rem 0 2rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
     @media (max-width: 480px) {
-      .hero h1, .ratings-header h1 { font-size: 1.6rem; }
+      .hero h1 { font-size: 1.6rem; }
       .post-full h1 { font-size: 1.5rem; }
       footer { flex-direction: column; gap: 0.5rem; text-align: center; }
       .form-scores { grid-template-columns: 1fr; }
@@ -131,13 +138,18 @@
 
     <!-- RATINGS -->
     <div id="ratings" class="page active">
-      <div class="ratings-header">
-        <h1>The Ratings.</h1>
-        <p>Each spot is ranked on taste, value, and experience. Weighted 50% taste, 25% each for value and experience. Total score out of 100.</p>
-      </div>
       <div class="tab-bar">
         <button class="tab-btn active" id="tab-ours" onclick="switchTab('ours')">Austin & Jamie</button>
         <button class="tab-btn" id="tab-community" onclick="switchTab('community')">Community</button>
+      </div>
+      <div class="ratings-meta">
+        <p>Total score out of 100. You can sort by Taste, Value, or Experience.</p>
+        <div class="sort-bar">
+          <button class="sort-btn active" id="sort-total" onclick="setSort('total')">Total</button>
+          <button class="sort-btn" id="sort-taste" onclick="setSort('taste')">Taste</button>
+          <button class="sort-btn" id="sort-value" onclick="setSort('value')">Value</button>
+          <button class="sort-btn" id="sort-experience" onclick="setSort('experience')">Experience</button>
+        </div>
       </div>
       <div id="oursPanel">
         <div id="ratingCards"></div>
@@ -268,10 +280,9 @@
       const isTop = score >= 80;
       const tags = Array.isArray(r.tags) ? r.tags : [];
       const tagsHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
-      const photoHTML = r.photo_url ? `<img src="${r.photo_url}" alt="${r.name}" style="width:100%;max-height:220px;object-fit:cover;border-radius:3px;margin-bottom:1rem;" loading="lazy" />` : '';
+      const photoHTML = r.photo_url ? `<img src="${r.photo_url}" alt="${r.name}" class="rating-card-photo" loading="lazy" />` : '';
       return `
         <div class="rating-card">
-          ${photoHTML}
           <div class="rating-card-top">
             <span class="rating-card-name">${r.name}</span>
             <span class="rating-score${isTop ? ' top-pick' : ''}">${score} <span class="denom">/ 100</span></span>
@@ -297,13 +308,32 @@
               <span class="subscore-val">${r.experience}</span>
             </div>
           </div>
+          ${photoHTML}
         </div>`;
+    }
+
+    let currentSort = 'total';
+
+    function sortKey(r) {
+      if (currentSort === 'taste') return r.taste || 0;
+      if (currentSort === 'value') return r.value || 0;
+      if (currentSort === 'experience') return r.experience || 0;
+      return total(r);
+    }
+
+    function setSort(key) {
+      currentSort = key;
+      ['total','taste','value','experience'].forEach(k => {
+        document.getElementById(`sort-${k}`).classList.toggle('active', k === key);
+      });
+      renderRatings();
+      renderCommunity();
     }
 
     function renderRatings() {
       const container = document.getElementById('ratingCards');
       const empty = document.getElementById('emptyState');
-      const sorted = [...allRatings].sort((a, b) => total(b) - total(a));
+      const sorted = [...allRatings].sort((a, b) => sortKey(b) - sortKey(a));
       container.innerHTML = sorted.map(r => ratingCardHTML(r, false)).join('');
       empty.style.display = sorted.length === 0 ? 'block' : 'none';
     }
@@ -311,7 +341,7 @@
     function renderCommunity() {
       const container = document.getElementById('communityCards');
       const empty = document.getElementById('communityEmptyState');
-      const sorted = [...communityRatings].sort((a, b) => total(b) - total(a));
+      const sorted = [...communityRatings].sort((a, b) => sortKey(b) - sortKey(a));
       container.innerHTML = sorted.map(r => ratingCardHTML(r, true)).join('');
       empty.style.display = sorted.length === 0 ? 'block' : 'none';
     }

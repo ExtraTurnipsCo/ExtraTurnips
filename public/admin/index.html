@@ -1,11 +1,380 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Extra Turnips CMS</title>
+  <title>Extra Turnips Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #FAEEDD;
+      --text-primary: #1a1a18;
+      --text-secondary: #5a5a56;
+      --text-muted: #9a9a94;
+      --border: #e8e6e0;
+      --accent: #2a2a26;
+      --red: #c0392b;
+      --green: #27ae60;
+    }
+    body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: var(--bg); color: var(--text-primary); min-height: 100vh; }
+    .container { max-width: 680px; margin: 0 auto; padding: 0 1.5rem; }
+
+    #lockScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .lock-box { width: 100%; max-width: 360px; }
+    .lock-box h1 { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 0.4rem; }
+    .lock-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 2rem; }
+    .lock-box input { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.6rem 0.85rem; color: var(--text-primary); outline: none; margin-bottom: 0.75rem; }
+    .lock-box input:focus { border-color: var(--accent); }
+    .lock-box button { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.65rem; background: var(--accent); color: var(--bg); border: none; border-radius: 3px; cursor: pointer; }
+    .lock-error { font-size: 0.8rem; color: var(--red); margin-top: 0.5rem; display: none; }
+
+    #adminUI { display: none; }
+    header { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; display: flex; align-items: baseline; justify-content: space-between; }
+    header h1 { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 400; }
+    header button { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; color: var(--text-muted); background: none; border: none; cursor: pointer; }
+    header button:hover { color: var(--text-primary); }
+
+    .tab-bar { display: flex; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
+    .tab-btn { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0; margin-right: 2rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; margin-bottom: -1px; transition: all 0.15s; }
+    .tab-btn:hover { color: var(--text-primary); }
+    .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .section-label { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .form-row { margin-bottom: 1.1rem; }
+    .form-row label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .form-row input, .form-row select, .form-row textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.5rem 0.75rem; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
+    .form-row textarea { resize: vertical; min-height: 90px; }
+    .form-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .form-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+    .form-submit { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.65rem 2rem; background: var(--accent); color: var(--bg); border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .form-submit:hover { opacity: 0.8; }
+    .form-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .form-status { font-size: 0.82rem; margin-top: 1rem; display: none; }
+    .form-status.ok { color: var(--green); display: block; }
+    .form-status.err { color: var(--red); display: block; }
+
+    .pending-empty { font-size: 0.9rem; color: var(--text-muted); padding: 2rem 0; }
+    .sub-card { border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; margin-bottom: 1.25rem; transition: opacity 0.3s; }
+    .sub-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.3rem; }
+    .sub-name { font-family: 'Lora', serif; font-size: 1.1rem; font-weight: 400; }
+    .sub-score { font-family: 'Lora', serif; font-size: 1.3rem; }
+    .sub-score-denom { font-size: 0.7rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-weight: 300; }
+    .sub-meta { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .sub-note { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1rem; }
+    .sub-scores { display: flex; gap: 1.5rem; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem; }
+    .sub-scores strong { color: var(--text-primary); font-weight: 400; }
+    .sub-tags-row { margin-bottom: 1rem; }
+    .sub-tags-row label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.3rem; }
+    .sub-tags-row input { font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.4rem 0.65rem; color: var(--text-primary); outline: none; width: 100%; max-width: 320px; }
+    .sub-tags-row input:focus { border-color: var(--accent); }
+    .sub-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .btn-approve { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 1.25rem; background: var(--accent); color: var(--bg); border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .btn-approve:hover { opacity: 0.8; }
+    .btn-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-reject { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 1.25rem; background: none; color: var(--red); border: 1px solid var(--red); border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .btn-reject:hover { opacity: 0.7; }
+    .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+    .sub-feedback { font-size: 0.78rem; margin-left: 0.5rem; }
+    .sub-feedback.ok { color: var(--green); }
+    .sub-feedback.err { color: var(--red); }
+  </style>
 </head>
 <body>
-  <script src="https://unpkg.com/decap-cms@3.1.2/dist/decap-cms.js"></script>
+
+<div id="lockScreen">
+  <div class="lock-box">
+    <h1>Extra Turnips</h1>
+    <p>Admin access only.</p>
+    <input type="password" id="pwInput" placeholder="Password" />
+    <button onclick="login()">Enter</button>
+    <p class="lock-error" id="loginError">Wrong password.</p>
+  </div>
+</div>
+
+<div id="adminUI">
+  <div class="container">
+    <header>
+      <h1>Extra Turnips Admin</h1>
+      <button onclick="logout()">Log out</button>
+    </header>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-rating" onclick="switchTab('rating')">Add Rating</button>
+      <button class="tab-btn" id="tab-post" onclick="switchTab('post')">Add Post</button>
+      <button class="tab-btn" id="tab-pending" onclick="switchTab('pending')">Pending</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-rating">
+      <p class="section-label">New Rating</p>
+      <form id="ratingForm" onsubmit="submitRating(event)">
+        <div class="form-row">
+          <label>Restaurant Name</label>
+          <input type="text" name="name" required placeholder="e.g. Shawarma Palace" />
+        </div>
+        <div class="form-row">
+          <label>Location</label>
+          <input type="text" name="location" required placeholder="e.g. 123 King St W, Toronto" />
+        </div>
+        <div class="form-row">
+          <label>Date</label>
+          <input type="text" name="date" placeholder="e.g. June 2026" />
+          <p class="form-hint">Leave blank to use today's date.</p>
+        </div>
+        <div class="form-row">
+          <label>Type</label>
+          <select name="type">
+            <option value="chicken">Chicken</option>
+            <option value="lamb">Lamb</option>
+            <option value="mixed">Mixed</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Review</label>
+          <textarea name="note" required placeholder="What did you think?"></textarea>
+        </div>
+        <div class="form-scores">
+          <div class="form-row">
+            <label>Taste /50</label>
+            <input type="number" name="taste" min="0" max="50" step="0.5" required placeholder="e.g. 38" />
+          </div>
+          <div class="form-row">
+            <label>Value /25</label>
+            <input type="number" name="value" min="0" max="25" step="0.5" required placeholder="e.g. 19" />
+          </div>
+          <div class="form-row">
+            <label>Experience /25</label>
+            <input type="number" name="experience" min="0" max="25" step="0.5" required placeholder="e.g. 20" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Tags</label>
+          <input type="text" name="tags" placeholder="e.g. Wrap, Plate, Guest:Eden" />
+          <p class="form-hint">Comma-separated.</p>
+        </div>
+        <button type="submit" class="form-submit" id="ratingSubmitBtn">Publish Rating</button>
+        <p class="form-status" id="ratingStatus"></p>
+      </form>
+    </div>
+
+    <div class="tab-panel" id="panel-post">
+      <p class="section-label">New Blog Post</p>
+      <form id="postForm" onsubmit="submitPost(event)">
+        <div class="form-row">
+          <label>Title</label>
+          <input type="text" name="title" required placeholder="e.g. The Shawarma Index" />
+        </div>
+        <div class="form-row">
+          <label>Date</label>
+          <input type="text" name="date" placeholder="e.g. June 2026" />
+          <p class="form-hint">Leave blank to use today's date.</p>
+        </div>
+        <div class="form-row">
+          <label>Read Time</label>
+          <input type="text" name="read" placeholder="e.g. 4 min read" />
+        </div>
+        <div class="form-row">
+          <label>Tag</label>
+          <input type="text" name="tag" placeholder="e.g. Rankings" />
+        </div>
+        <div class="form-row">
+          <label>Preamble</label>
+          <textarea name="preamble" required placeholder="Short intro shown on the blog list..." style="min-height:70px;"></textarea>
+        </div>
+        <div class="form-row">
+          <label>Post Body</label>
+          <textarea name="post" required placeholder="Full post content..." style="min-height:200px;"></textarea>
+          <p class="form-hint">Plain text or HTML.</p>
+        </div>
+        <button type="submit" class="form-submit" id="postSubmitBtn">Publish Post</button>
+        <p class="form-status" id="postStatus"></p>
+      </form>
+    </div>
+
+    <div class="tab-panel" id="panel-pending">
+      <p class="section-label">Community Submissions</p>
+      <div id="pendingList"><p class="pending-empty">Loading...</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FN = '/.netlify/functions/admin';
+
+  function getPassword() { return sessionStorage.getItem('adminPw') || ''; }
+
+  async function login() {
+    const pw = document.getElementById('pwInput').value;
+    if (!pw) return;
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+    try {
+      const res = await fetch(`${FN}?action=submissions`, {
+        headers: { 'Authorization': `Bearer ${pw}` }
+      });
+      if (res.status === 401) { err.style.display = 'block'; return; }
+      sessionStorage.setItem('adminPw', pw);
+      document.getElementById('lockScreen').style.display = 'none';
+      document.getElementById('adminUI').style.display = 'block';
+      loadPending();
+    } catch {
+      err.textContent = 'Connection error.';
+      err.style.display = 'block';
+    }
+  }
+
+  function logout() { sessionStorage.removeItem('adminPw'); location.reload(); }
+
+  document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+  function switchTab(name) {
+    ['rating','post','pending'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+      document.getElementById(`panel-${t}`).classList.toggle('active', t === name);
+    });
+  }
+
+  async function api(method, body) {
+    const opts = {
+      method,
+      headers: { 'Authorization': `Bearer ${getPassword()}`, 'Content-Type': 'application/json' }
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(FN + (method === 'GET' ? '?action=submissions' : ''), opts);
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  async function submitRating(e) {
+    e.preventDefault();
+    const btn = document.getElementById('ratingSubmitBtn');
+    const status = document.getElementById('ratingStatus');
+    const fd = new FormData(e.target);
+    btn.disabled = true; btn.textContent = 'Publishing...'; status.className = 'form-status';
+    try {
+      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), tags:fd.get('tags') });
+      status.textContent = 'Published! Site will redeploy in ~30 seconds.';
+      status.className = 'form-status ok';
+      e.target.reset();
+    } catch(err) { status.textContent = 'Error: ' + err.message; status.className = 'form-status err'; }
+    btn.disabled = false; btn.textContent = 'Publish Rating';
+  }
+
+  async function submitPost(e) {
+    e.preventDefault();
+    const btn = document.getElementById('postSubmitBtn');
+    const status = document.getElementById('postStatus');
+    const fd = new FormData(e.target);
+    btn.disabled = true; btn.textContent = 'Publishing...'; status.className = 'form-status';
+    try {
+      await api('POST', { action:'create-post', title:fd.get('title'), date:fd.get('date'), read:fd.get('read'), tag:fd.get('tag'), preamble:fd.get('preamble'), post:fd.get('post') });
+      status.textContent = 'Published! Site will redeploy in ~30 seconds.';
+      status.className = 'form-status ok';
+      e.target.reset();
+    } catch(err) { status.textContent = 'Error: ' + err.message; status.className = 'form-status err'; }
+    btn.disabled = false; btn.textContent = 'Publish Post';
+  }
+
+  async function loadPending() {
+    const list = document.getElementById('pendingList');
+    try {
+      const subs = await api('GET');
+      const tab = document.getElementById('tab-pending');
+      if (!subs.length) {
+        list.innerHTML = '<p class="pending-empty">No pending submissions.</p>';
+        tab.textContent = 'Pending';
+        return;
+      }
+      tab.textContent = `Pending (${subs.length})`;
+      list.innerHTML = subs.map(s => buildSubCard(s)).join('');
+    } catch(err) {
+      list.innerHTML = `<p class="pending-empty" style="color:var(--red)">Failed to load: ${err.message}</p>`;
+    }
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function buildSubCard(s) {
+    const d = s.data || {};
+    const taste = parseFloat(d.taste)||0, val = parseFloat(d.value)||0, exp = parseFloat(d.experience)||0;
+    const total = Math.round((taste+val+exp)*10)/10;
+    const dataAttr = encodeURIComponent(JSON.stringify(d));
+    return `<div class="sub-card" id="sub-${s.id}">
+      <div class="sub-card-top">
+        <span class="sub-name">${esc(d.name)}</span>
+        <span class="sub-score">${total} <span class="sub-score-denom">/100</span></span>
+      </div>
+      <div class="sub-meta">${esc(d.location)} &middot; by ${esc(d.submitter)} &middot; ${new Date(s.created_at).toLocaleDateString('en-CA',{month:'short',day:'numeric',year:'numeric'})}</div>
+      <p class="sub-note">${esc(d.note)}</p>
+      <div class="sub-scores">
+        <div>Taste <strong>${taste}/50</strong></div>
+        <div>Value <strong>${val}/25</strong></div>
+        <div>Experience <strong>${exp}/25</strong></div>
+      </div>
+      <div class="sub-tags-row">
+        <label>Tags (comma-separated, optional)</label>
+        <input type="text" id="tags-${s.id}" placeholder="e.g. Wrap, Plate" />
+      </div>
+      <div class="sub-actions">
+        <button class="btn-approve" id="approve-${s.id}" onclick="approve('${s.id}','${dataAttr}')">Approve</button>
+        <button class="btn-reject" id="reject-${s.id}" onclick="reject('${s.id}')">Reject</button>
+        <span class="sub-feedback" id="feedback-${s.id}"></span>
+      </div>
+    </div>`;
+  }
+
+  async function approve(id, dataEncoded) {
+    const d = JSON.parse(decodeURIComponent(dataEncoded));
+    const aBtn = document.getElementById(`approve-${id}`);
+    const rBtn = document.getElementById(`reject-${id}`);
+    const fb = document.getElementById(`feedback-${id}`);
+    const tags = document.getElementById(`tags-${id}`).value;
+    aBtn.disabled = rBtn.disabled = true;
+    aBtn.textContent = 'Approving...';
+    try {
+      await api('POST', { action:'approve', submissionId:id, name:d.name, location:d.location, type:d.type, note:d.note, submitter:d.submitter, taste:d.taste, value:d.value, experience:d.experience, tags });
+      document.getElementById(`sub-${id}`).style.opacity = '0.4';
+      fb.textContent = 'Approved — redeploying shortly.';
+      fb.className = 'sub-feedback ok';
+    } catch(err) {
+      fb.textContent = 'Error: ' + err.message;
+      fb.className = 'sub-feedback err';
+      aBtn.disabled = rBtn.disabled = false;
+      aBtn.textContent = 'Approve';
+    }
+  }
+
+  async function reject(id) {
+    if (!confirm('Reject and delete this submission?')) return;
+    const aBtn = document.getElementById(`approve-${id}`);
+    const rBtn = document.getElementById(`reject-${id}`);
+    const fb = document.getElementById(`feedback-${id}`);
+    aBtn.disabled = rBtn.disabled = true;
+    rBtn.textContent = 'Rejecting...';
+    try {
+      await api('POST', { action:'reject', submissionId:id });
+      document.getElementById(`sub-${id}`).style.opacity = '0.4';
+      fb.textContent = 'Rejected.';
+      fb.className = 'sub-feedback ok';
+    } catch(err) {
+      fb.textContent = 'Error: ' + err.message;
+      fb.className = 'sub-feedback err';
+      aBtn.disabled = rBtn.disabled = false;
+      rBtn.textContent = 'Reject';
+    }
+  }
+
+  window.addEventListener('load', () => {
+    const saved = getPassword();
+    if (saved) {
+      document.getElementById('pwInput').value = saved;
+      login();
+    }
+  });
+</script>
 </body>
 </html>

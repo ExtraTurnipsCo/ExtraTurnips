@@ -73,6 +73,7 @@ function buildRatingMarkdown(data) {
     experience: parseFloat(data.experience)
   };
   if (data.submitter) fm.submitter = data.submitter;
+  if (data.photo_url) fm.photo_url = data.photo_url;
   if (data.tags && String(data.tags).trim()) {
     fm.tags = String(data.tags).split(',').map(t => t.trim()).filter(Boolean);
   }

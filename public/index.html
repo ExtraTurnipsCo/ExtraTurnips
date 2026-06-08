@@ -243,12 +243,8 @@
             </div>
           </div>
           <div class="form-row">
-            <label>Password (Austin & Jamie only — leave blank for community)</label>
-            <input type="password" name="password" placeholder="Leave blank if submitting as community" />
-          </div>
-          <div class="form-row">
-            <label>Photo or Video Link (optional)</label>
-            <input type="text" name="photo_link" placeholder="Link to a photo or video of the spot" />
+            <label>Photo (optional)</label>
+            <input type="file" name="photo_file" id="communityPhoto" accept="image/*" />
           </div>
           <button type="submit" class="form-submit">Submit Rating</button>
         </form>
@@ -272,8 +268,10 @@
       const isTop = score >= 80;
       const tags = Array.isArray(r.tags) ? r.tags : [];
       const tagsHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+      const photoHTML = r.photo_url ? `<img src="${r.photo_url}" alt="${r.name}" style="width:100%;max-height:220px;object-fit:cover;border-radius:3px;margin-bottom:1rem;" loading="lazy" />` : '';
       return `
         <div class="rating-card">
+          ${photoHTML}
           <div class="rating-card-top">
             <span class="rating-card-name">${r.name}</span>
             <span class="rating-score${isTop ? ' top-pick' : ''}">${score} <span class="denom">/ 100</span></span>
@@ -359,20 +357,39 @@
       if (e.target === document.getElementById('modalOverlay')) closeModal();
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
       e.preventDefault();
       const form = e.target;
-      const data = new FormData(form);
-      fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(data).toString()
-      })
-      .then(() => {
+      const submitBtn = form.querySelector('.form-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Submitting...';
+      try {
+        const data = new FormData(form);
+        const photoFile = document.getElementById('communityPhoto').files[0];
+        if (photoFile) {
+          submitBtn.textContent = 'Uploading photo...';
+          const fd = new FormData();
+          fd.append('file', photoFile);
+          fd.append('upload_preset', 'ExtraTurnip_default');
+          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: fd });
+          if (res.ok) {
+            const json = await res.json();
+            data.set('photo_url', json.secure_url);
+          }
+        }
+        data.delete('photo_file');
+        await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(data).toString()
+        });
         document.getElementById('formWrap').style.display = 'none';
         document.getElementById('formSuccess').style.display = 'block';
-      })
-      .catch(() => alert('Something went wrong, please try again.'));
+      } catch {
+        alert('Something went wrong, please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Rating';
+      }
     }
 
     function show(id) {
@@ -399,8 +416,7 @@
   <input name="taste" type="number" />
   <input name="value" type="number" />
   <input name="experience" type="number" />
-  <input name="password" type="password" />
-  <input name="photo" type="photo_link" />
+  <input name="photo_url" />
 </form>
 </body>
 </html>

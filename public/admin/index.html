@@ -156,6 +156,12 @@
           <input type="text" name="tags" placeholder="e.g. Wrap, Plate, Guest:Eden" />
           <p class="form-hint">Comma-separated.</p>
         </div>
+        <div class="form-row">
+          <label>Photo (optional)</label>
+          <input type="file" name="photo" accept="image/*" id="ratingPhoto" onchange="previewPhoto(this,'ratingPreview')" />
+          <p class="form-hint">Uploads to Cloudinary — works from phone or computer.</p>
+          <img id="ratingPreview" style="display:none;margin-top:0.75rem;max-width:100%;max-height:200px;border-radius:3px;object-fit:cover;" />
+        </div>
         <button type="submit" class="form-submit" id="ratingSubmitBtn">Publish Rating</button>
         <p class="form-status" id="ratingStatus"></p>
       </form>
@@ -204,8 +210,30 @@
 
 <script>
   const FN = '/.netlify/functions/admin';
+  const CLOUDINARY_CLOUD = 'dk5zuikbf';
+  const CLOUDINARY_PRESET = 'ExtraTurnip_default';
 
   function getPassword() { return sessionStorage.getItem('adminPw') || ''; }
+
+  async function uploadToCloudinary(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('Photo upload failed');
+    const data = await res.json();
+    return data.secure_url;
+  }
+
+  function previewPhoto(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+      preview.src = URL.createObjectURL(input.files[0]);
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
 
   async function login() {
     const pw = document.getElementById('pwInput').value;
@@ -256,7 +284,13 @@
     const fd = new FormData(e.target);
     btn.disabled = true; btn.textContent = 'Publishing...'; status.className = 'form-status';
     try {
-      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), tags:fd.get('tags') });
+      let photo_url = '';
+      const photoFile = document.getElementById('ratingPhoto').files[0];
+      if (photoFile) {
+        btn.textContent = 'Uploading photo...';
+        photo_url = await uploadToCloudinary(photoFile);
+      }
+      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), tags:fd.get('tags'), photo_url });
       status.textContent = 'Published! Site will redeploy in ~30 seconds.';
       status.className = 'form-status ok';
       e.target.reset();

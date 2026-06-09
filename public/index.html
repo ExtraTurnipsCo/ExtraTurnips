@@ -3,122 +3,160 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Austin & Jamie - Extra Turnips</title>
+  <title>Extra Turnips — Toronto Shawarma</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --text-primary: #1a1a18;
-      --text-secondary: #5a5a56;
-      --text-muted: #9a9a94;
       --bg: #FAEEDD;
+      --text: #1a1a18;
+      --secondary: #5a5a56;
+      --muted: #9a9a94;
       --border: #e8e6e0;
       --accent: #2a2a26;
       --tag-bg: #f0ede6;
-      --gold-text: #7a5c1e;
+      --gold: #7a5c1e;
     }
+
     html { font-size: 16px; }
-    body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: var(--bg); color: var(--text-primary); line-height: 1.7; min-height: 100vh; }
+    body { font-family: 'DM Sans', sans-serif; font-weight: 300; background: var(--bg); color: var(--text); line-height: 1.7; min-height: 100vh; }
     .container { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; }
-    nav { padding: 2rem 0 1.75rem; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
-    .nav-logo { font-family: 'Lora', serif; font-size: 1.5rem; font-weight: 400; color: var(--text-primary); letter-spacing: -0.01em; cursor: pointer; display: flex; align-items: center; }
-    .nav-links { display: flex; gap: 1.75rem; list-style: none; }
-    .nav-links a { font-size: 0.85rem; color: var(--text-muted); text-decoration: none; letter-spacing: 0.04em; cursor: pointer; transition: color 0.15s; }
-    .nav-links a:hover, .nav-links a.active { color: var(--text-primary); }
-    .page { display: none; }
+
+    /* ── Nav ── */
+    nav { padding: 1.75rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+    .nav-logo { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 400; color: var(--text); letter-spacing: -0.01em; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
+    .nav-logo img { height: 40px; width: auto; }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { font-size: 0.82rem; color: var(--muted); text-decoration: none; letter-spacing: 0.04em; cursor: pointer; transition: color 0.15s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+    /* ── Pages ── */
+    .page { display: none; padding-top: 2rem; }
     .page.active { display: block; }
-    .hero { margin-bottom: 3.5rem; }
-    .hero h1 { font-family: 'Lora', serif; font-size: 2rem; font-weight: 400; line-height: 1.3; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-    .hero p { font-size: 1rem; color: var(--text-secondary); }
-    .section-label { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1.5rem; }
-    .post-list { display: flex; flex-direction: column; }
-    .post-item { padding: 1.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-    .post-item:first-child { border-top: 1px solid var(--border); }
-    .post-item:hover .post-title { color: var(--text-secondary); }
-    .post-meta { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
-    .post-title { font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 400; line-height: 1.4; color: var(--text-primary); margin-bottom: 0.5rem; transition: color 0.15s; }
-    .post-excerpt { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.65; }
-    .tag { display: inline-block; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; background: var(--tag-bg); color: var(--text-muted); padding: 3px 10px; border-radius: 20px; margin-top: 0.75rem; }
-    .about-section h2 { font-family: 'Lora', serif; font-size: 1.75rem; font-weight: 400; margin-bottom: 1.5rem; letter-spacing: -0.02em; }
-    .about-section p { font-size: 1rem; color: var(--text-secondary); line-height: 1.8; margin-bottom: 1.1rem; max-width: 520px; }
-    .post-full .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; color: var(--text-muted); cursor: pointer; margin-bottom: 2rem; transition: color 0.15s; text-decoration: none; letter-spacing: 0.02em; }
-    .post-full .back:hover { color: var(--text-primary); }
-    .post-full .back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .post-full h1 { font-family: 'Lora', serif; font-size: 1.85rem; font-weight: 400; line-height: 1.3; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-    .post-full .post-meta { padding-bottom: 1.75rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; display: flex; align-items: center; gap: 0.75rem; }
-    .post-full p { font-size: 1rem; color: var(--text-secondary); line-height: 1.85; margin-bottom: 1.25rem; }
-    .post-full p:last-child { margin-bottom: 0; }
-    .ratings-header { margin-bottom: 2rem; }
-    .ratings-header h1 { font-family: 'Lora', serif; font-size: 2rem; font-weight: 400; line-height: 1.3; letter-spacing: -0.02em; margin-bottom: 0.6rem; }
-    .ratings-header p { font-size: 0.95rem; color: var(--text-secondary); }
 
-    /* Tab switcher */
-    .tab-bar { display: flex; gap: 0; margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); }
-    .tab-btn { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0; margin-right: 2rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
-    .tab-btn:hover { color: var(--text-primary); }
-    .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+    /* ── Ratings controls ── */
+    .ratings-controls { border-bottom: 1px solid var(--border); margin-bottom: 0; }
+    .tab-row { display: flex; align-items: center; justify-content: space-between; }
+    .tab-group { display: flex; }
+    .tab-btn { font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.75rem 0; margin-right: 1.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+    .submit-link { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; background: none; font-family: 'DM Sans', sans-serif; transition: all 0.15s; display: none; }
+    .submit-link:hover { color: var(--text); border-color: var(--text); }
+    .submit-link.visible { display: inline-block; }
 
-    /* Submit button */
-    .submit-btn { display: inline-block; margin-bottom: 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 16px; border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); cursor: pointer; background: none; transition: all 0.15s; }
-    .submit-btn:hover { color: var(--text-primary); border-color: var(--text-primary); }
+    .sort-row { display: flex; gap: 0.4rem; padding: 0.85rem 0; flex-wrap: wrap; }
+    .sort-btn { font-family: 'DM Sans', sans-serif; font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 13px; border: 1px solid var(--border); border-radius: 20px; background: none; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .sort-btn:hover { color: var(--text); border-color: var(--text); }
+    .sort-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 
-    /* Modal */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
-    .modal-overlay.open { display: flex; }
-    .modal { background: var(--bg); max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 4px; padding: 2rem; position: relative; }
-    .modal h2 { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.4rem; }
-    .modal p.modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.75rem; }
-    .modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; line-height: 1; }
-    .modal-close:hover { color: var(--text-primary); }
-    .form-row { margin-bottom: 1.1rem; }
-    .form-row label { display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.35rem; }
-    .form-row input, .form-row select, .form-row textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.5rem 0.75rem; color: var(--text-primary); outline: none; transition: border-color 0.15s; }
-    .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
-    .form-row textarea { resize: vertical; min-height: 90px; }
-    .form-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
-    .form-submit { width: 100%; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.65rem; background: var(--accent); color: #FAEEDD; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
-    .form-submit:hover { opacity: 0.85; }
-    .form-success { display: none; text-align: center; padding: 2rem 0; }
-    .form-success p { font-family: 'Lora', serif; font-size: 1.1rem; font-style: italic; color: var(--text-secondary); }
-
-    .rating-card { padding: 1.75rem 0; border-bottom: 1px solid var(--border); }
+    /* ── Rating cards ── */
+    .cards-list { margin-top: 0; }
+    .rating-card { border-bottom: 1px solid var(--border); cursor: pointer; opacity: 0; transform: translateY(10px); transition: opacity 0.35s ease, transform 0.35s ease; }
     .rating-card:first-child { border-top: 1px solid var(--border); }
-    .rating-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.35rem; }
-    .rating-card-name { font-family: 'Lora', serif; font-size: 1.15rem; font-weight: 400; line-height: 1.3; color: var(--text-primary); }
-    .rating-score { font-family: 'Lora', serif; font-size: 1.4rem; font-weight: 400; color: var(--text-primary); white-space: nowrap; line-height: 1; }
-    .rating-score .denom { font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-weight: 300; }
-    .rating-score.top-pick { color: var(--gold-text); }
-    .rating-card-meta { font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.02em; margin-bottom: 0.75rem; }
-    .rating-card-note { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.75; margin-bottom: 1rem; }
-    .rating-card-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.1rem; }
-    .subscores { display: flex; flex-direction: column; gap: 0.5rem; }
+    .rating-card.visible { opacity: 1; transform: none; }
+
+    .card-header { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 0; gap: 1rem; user-select: none; }
+    .card-header-left { flex: 1; min-width: 0; }
+    .card-name { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 400; line-height: 1.3; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-meta { font-size: 0.73rem; color: var(--muted); margin-top: 0.15rem; letter-spacing: 0.01em; }
+    .card-header-right { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+    .card-score { font-family: 'Lora', serif; font-size: 1.25rem; font-weight: 400; line-height: 1; }
+    .card-score.top { color: var(--gold); }
+    .card-denom { font-size: 0.65rem; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 300; }
+    .card-chevron { width: 15px; height: 15px; flex-shrink: 0; color: var(--muted); transition: transform 0.3s ease; }
+    .rating-card.expanded .card-chevron { transform: rotate(180deg); }
+
+    /* Expand animation — CSS grid trick */
+    .card-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s ease; }
+    .card-body-inner { overflow: hidden; min-height: 0; }
+    .rating-card.expanded .card-body { grid-template-rows: 1fr; }
+
+    .card-detail { padding-bottom: 1.5rem; }
+    .community-submitter { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.03em; margin-bottom: 0.85rem; }
+    .card-note { font-size: 0.88rem; color: var(--secondary); line-height: 1.8; margin-bottom: 1.1rem; }
+    .card-subscores { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
     .subscore-row { display: flex; align-items: center; gap: 0.75rem; }
-    .subscore-lbl { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); width: 6rem; flex-shrink: 0; }
+    .subscore-lbl { font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); width: 6rem; flex-shrink: 0; }
     .subscore-lbl-max { color: var(--border); }
     .subscore-track { flex: 1; height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
     .subscore-fill { height: 100%; background: var(--accent); border-radius: 2px; }
-    .subscore-val { font-size: 0.72rem; color: var(--text-secondary); width: 2rem; text-align: right; flex-shrink: 0; }
-    .empty-state { padding: 3rem 0; font-size: 0.9rem; color: var(--text-muted); font-style: italic; display: none; }
-    .community-submitter { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 0.5rem; }
-    .ratings-meta { margin-bottom: 1.75rem; }
-    .ratings-meta p { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 0.85rem; }
-    .sort-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .sort-btn { font-family: 'DM Sans', sans-serif; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 14px; border: 1px solid var(--border); border-radius: 20px; background: none; color: var(--text-muted); cursor: pointer; transition: all 0.15s; }
-    .sort-btn:hover { color: var(--text-primary); border-color: var(--text-primary); }
-    .sort-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
-    .rating-card-photo { width: 100%; max-height: 220px; object-fit: cover; border-radius: 3px; margin-top: 1rem; display: block; }
-    footer { margin-top: 4rem; padding: 1.75rem 0 2rem; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+    .subscore-val { font-size: 0.7rem; color: var(--secondary); width: 2rem; text-align: right; flex-shrink: 0; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0; }
+    .tag { display: inline-block; font-size: 0.67rem; letter-spacing: 0.05em; text-transform: uppercase; background: var(--tag-bg); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
+
+    /* Photo strip */
+    .photo-strip { display: flex; gap: 0.5rem; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 1.1rem; border-radius: 4px; }
+    .photo-strip::-webkit-scrollbar { display: none; }
+    .photo-strip img { scroll-snap-align: start; flex-shrink: 0; width: 100%; max-height: 210px; object-fit: cover; border-radius: 4px; }
+
+    .empty-state { padding: 3rem 0; font-size: 0.88rem; color: var(--muted); font-style: italic; }
+
+    /* ── Blog ── */
+    .blog-header { margin-bottom: 2.5rem; }
+    .blog-header h1 { font-family: 'Lora', serif; font-size: 1.85rem; font-weight: 400; line-height: 1.3; margin-bottom: 0.65rem; letter-spacing: -0.02em; }
+    .blog-header p { font-size: 0.95rem; color: var(--secondary); }
+    .post-list { display: flex; flex-direction: column; }
+    .post-item { padding: 1.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer; opacity: 0; transform: translateY(10px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .post-item:first-child { border-top: 1px solid var(--border); }
+    .post-item.visible { opacity: 1; transform: none; }
+    .post-item:hover .post-title { color: var(--secondary); }
+    .post-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.45rem; letter-spacing: 0.02em; }
+    .post-title { font-family: 'Lora', serif; font-size: 1.15rem; font-weight: 400; line-height: 1.4; color: var(--text); margin-bottom: 0.45rem; transition: color 0.15s; }
+    .post-excerpt { font-size: 0.88rem; color: var(--secondary); line-height: 1.65; }
+
+    /* ── Single post ── */
+    .post-full .back { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--muted); cursor: pointer; margin-bottom: 2rem; transition: color 0.15s; text-decoration: none; letter-spacing: 0.02em; }
+    .post-full .back:hover { color: var(--text); }
+    .post-full .back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .post-full h1 { font-family: 'Lora', serif; font-size: 1.75rem; font-weight: 400; line-height: 1.3; margin-bottom: 0.65rem; letter-spacing: -0.02em; }
+    .post-full .post-meta { padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.75rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .post-full p { font-size: 0.95rem; color: var(--secondary); line-height: 1.85; margin-bottom: 1.2rem; }
+    .post-full p:last-child { margin-bottom: 0; }
+
+    /* ── About ── */
+    .about-section h2 { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
+    .about-section p { font-size: 0.95rem; color: var(--secondary); line-height: 1.85; margin-bottom: 1.1rem; }
+    .about-founders { margin-bottom: 2.5rem; }
+    .about-founders-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
+    .about-founders-head a { font-size: 0.78rem; color: var(--muted); text-decoration: none; letter-spacing: 0.04em; transition: color 0.15s; }
+    .about-founders-head a:hover { color: var(--text); }
+    .about-founders img { width: 100%; border-radius: 4px; display: block; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--bg); max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto; border-radius: 4px; padding: 2rem; position: relative; }
+    .modal h2 { font-family: 'Lora', serif; font-size: 1.35rem; font-weight: 400; margin-bottom: 0.35rem; }
+    .modal p.modal-sub { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .modal-close { position: absolute; top: 1.25rem; right: 1.25rem; background: none; border: none; font-size: 1.2rem; color: var(--muted); cursor: pointer; line-height: 1; }
+    .modal-close:hover { color: var(--text); }
+    .form-row { margin-bottom: 1.1rem; }
+    .form-row label { display: block; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .form-row input, .form-row select, .form-row textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.5rem 0.75rem; color: var(--text); outline: none; transition: border-color 0.15s; }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
+    .form-row textarea { resize: vertical; min-height: 90px; }
+    .form-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; }
+    .form-submit { width: 100%; margin-top: 1.25rem; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.65rem; background: var(--accent); color: var(--bg); border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .form-submit:hover { opacity: 0.85; }
+    .form-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .form-success { display: none; text-align: center; padding: 2rem 0; }
+    .form-success p { font-family: 'Lora', serif; font-size: 1.05rem; font-style: italic; color: var(--secondary); }
+
+    /* ── Footer ── */
+    footer { margin-top: 4rem; padding: 1.75rem 0 2rem; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+
+    /* ── Mobile ── */
     @media (max-width: 480px) {
-      .hero h1 { font-size: 1.6rem; }
-      .post-full h1 { font-size: 1.5rem; }
-      footer { flex-direction: column; gap: 0.5rem; text-align: center; }
-      .form-scores { grid-template-columns: 1fr; }
-      nav { flex-wrap: wrap; gap: 0.5rem; padding: 1rem 0; }
-      .nav-logo { font-size: 1.1rem; }
-      .nav-logo img { height: 40px; }
+      nav { flex-wrap: wrap; gap: 0.75rem; padding: 1.25rem 0; }
+      .nav-logo { font-size: 1.2rem; }
+      .nav-logo img { height: 34px; }
       .nav-links { gap: 1rem; }
       .nav-links a { font-size: 0.78rem; }
+      .post-full h1 { font-size: 1.45rem; }
+      .form-scores { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 0.4rem; text-align: center; }
     }
   </style>
 </head>
@@ -126,71 +164,74 @@
   <div class="container">
     <nav>
       <span class="nav-logo" onclick="show('ratings')">
-        <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" style="height:48px; width:auto; vertical-align:middle; margin-right:10px;">
+        <img src="ExtraTurnipsLogo.png" alt="Extra Turnips" />
         Extra Turnips
       </span>
       <ul class="nav-links">
         <li><a id="nav-ratings" onclick="show('ratings')" class="active">Ratings</a></li>
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
-        <li><a id="nav-about" onclick="show('about')">About Us</a></li>
+        <li><a id="nav-about" onclick="show('about')">About</a></li>
       </ul>
     </nav>
 
     <!-- RATINGS -->
     <div id="ratings" class="page active">
-      <div class="tab-bar">
-        <button class="tab-btn active" id="tab-ours" onclick="switchTab('ours')">Austin & Jamie</button>
-        <button class="tab-btn" id="tab-community" onclick="switchTab('community')">Community</button>
-      </div>
-      <div class="ratings-meta">
-        <p>Total score out of 100. You can sort by Taste, Value, or Experience.</p>
-        <div class="sort-bar">
+      <div class="ratings-controls">
+        <div class="tab-row">
+          <div class="tab-group">
+            <button class="tab-btn active" id="tab-ours" onclick="switchRatingTab('ours')">Austin & Jamie</button>
+            <button class="tab-btn" id="tab-community" onclick="switchRatingTab('community')">Community</button>
+          </div>
+          <button class="submit-link" id="submitLink" onclick="openModal()">+ Submit</button>
+        </div>
+        <div class="sort-row">
           <button class="sort-btn active" id="sort-total" onclick="setSort('total')">Total</button>
           <button class="sort-btn" id="sort-taste" onclick="setSort('taste')">Taste</button>
           <button class="sort-btn" id="sort-value" onclick="setSort('value')">Value</button>
           <button class="sort-btn" id="sort-experience" onclick="setSort('experience')">Experience</button>
         </div>
       </div>
-      <div id="oursPanel">
+
+      <div id="oursPanel" class="cards-list">
         <div id="ratingCards"></div>
-        <p class="empty-state" id="emptyState">No ratings yet. Check back soon.</p>
+        <p class="empty-state" id="emptyState" style="display:none;">No ratings yet.</p>
       </div>
-      <div id="communityPanel" style="display:none;">
-        <button class="submit-btn" onclick="openModal()">+ Submit a Rating</button>
+      <div id="communityPanel" class="cards-list" style="display:none;">
         <div id="communityCards"></div>
-        <p class="empty-state" id="communityEmptyState">No community ratings yet. Be the first to submit one.</p>
+        <p class="empty-state" id="communityEmptyState" style="display:none;">No community ratings yet. Be the first.</p>
       </div>
     </div>
 
     <!-- BLOG -->
     <div id="blog" class="page">
-      <div class="hero">
+      <div class="blog-header">
         <h1>The Toronto Shawarma Scene.</h1>
-        <p>We aren't just searching for the best shawarma. We're also trying to find places serving good authentic food that aren't getting as much attention as they deserve.</p>
+        <p>We aren't just searching for the best shawarma — we're finding places serving great authentic food that aren't getting the attention they deserve.</p>
       </div>
-      <p class="section-label">Recent posts</p>
       <div class="post-list" id="postList"></div>
     </div>
 
     <!-- SINGLE POST -->
     <div id="post" class="page">
       <div class="post-full">
-        <a class="back" onclick="show('blog')"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>Back</a>
+        <a class="back" onclick="show('blog')">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>Back
+        </a>
         <h1 id="postTitle"></h1>
         <div class="post-meta" id="postMeta"></div>
         <div id="postBody"></div>
       </div>
     </div>
 
-    <!-- ABOUT US -->
+    <!-- ABOUT -->
     <div id="about" class="page">
       <div class="about-section">
-        <div style="margin-bottom: 2.5rem;">
-          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom: 1rem;">
-            <h2 style="font-family:'Lora',serif; font-size:1.75rem; font-weight:400; letter-spacing:-0.02em;">The Founders</h2>
-            <a href="https://www.instagram.com/ExtraTurnips" target="_blank" style="font-size:0.78rem; color:var(--text-muted); text-decoration:none; letter-spacing:0.04em; transition:color 0.15s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">@ExtraTurnips</a>
+        <div class="about-founders">
+          <div class="about-founders-head">
+            <h2>The Founders</h2>
+            <a href="https://www.instagram.com/ExtraTurnips" target="_blank">@ExtraTurnips</a>
           </div>
-          <img src="FOUNDERS_PHOTO.jpg" alt="Austin and Jamie" style="width:100%; border-radius:4px; display:block;">
+          <img src="FOUNDERS_PHOTO.jpg" alt="Austin and Jamie" />
         </div>
         <h2>How We Got Started</h2>
         <p>We started getting shawarma in high school because it was convenient, but we quickly learnt that these places are often more than just food spots. They're run by such great people, often families that have built the business from scratch.</p>
@@ -202,26 +243,25 @@
 
     <footer>
       <span>Extra Turnips &copy; 2026</span>
-      <span>Built with GitHub Pages</span>
+      <span>Toronto Shawarma Scene Investigation</span>
     </footer>
   </div>
 
   <!-- SUBMISSION MODAL -->
   <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal()">✕</button>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
       <h2>Submit a Rating</h2>
       <p class="modal-sub">Your submission will be reviewed before it goes live.</p>
       <div id="formWrap">
         <form name="community-rating" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" onsubmit="handleSubmit(event)">
           <input type="hidden" name="form-name" value="community-rating" />
-          <input type="hidden" name="bot-field" />
           <div class="form-row">
             <label>Your Name</label>
             <input type="text" name="submitter" required placeholder="e.g. Alex T." />
           </div>
           <div class="form-row">
-            <label>Place Name</label>
+            <label>Restaurant Name</label>
             <input type="text" name="name" required placeholder="e.g. Shawarma Palace" />
           </div>
           <div class="form-row">
@@ -262,57 +302,39 @@
         </form>
       </div>
       <div class="form-success" id="formSuccess">
-        <p>Thanks for the submission — we'll review it shortly.</p>
+        <p>Thanks — we&rsquo;ll review it shortly.</p>
       </div>
     </div>
   </div>
+
+  <!-- Hidden Netlify form detector -->
+  <form name="community-rating" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="hidden" name="form-name" value="community-rating" />
+    <input name="submitter" /><input name="name" /><input name="location" />
+    <select name="type"><option>chicken</option><option>lamb</option><option>mixed</option></select>
+    <textarea name="note"></textarea>
+    <input name="taste" type="number" /><input name="value" type="number" /><input name="experience" type="number" />
+    <input name="photo_url" />
+  </form>
+
+  <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
   <script>
+    // ── Data injected at build time ──
     const communityRatings = __COMMUNITY_DATA__;
     const allRatings = __RATINGS_DATA__;
     const allPosts = __POSTS_DATA__;
 
-    let activeTab = 'ours';
+    // ── Lenis smooth scroll ──
+    const lenis = new Lenis({ lerp: 0.08, smoothWheel: true });
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
 
-    function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
-
-    function ratingCardHTML(r, showSubmitter) {
-      const score = Math.round(total(r) * 10) / 10;
-      const isTop = score >= 80;
-      const tags = Array.isArray(r.tags) ? r.tags : [];
-      const tagsHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
-      const photoHTML = r.photo_url ? `<img src="${r.photo_url}" alt="${r.name}" class="rating-card-photo" loading="lazy" />` : '';
-      return `
-        <div class="rating-card">
-          <div class="rating-card-top">
-            <span class="rating-card-name">${r.name}</span>
-            <span class="rating-score${isTop ? ' top-pick' : ''}">${score} <span class="denom">/ 100</span></span>
-          </div>
-          ${showSubmitter && r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : ''}
-          <div class="rating-card-meta">${r.location} &middot; ${r.date}</div>
-          <p class="rating-card-note">${r.note}</p>
-          <div class="rating-card-tags">${tagsHTML}</div>
-          <div class="subscores">
-            <div class="subscore-row">
-              <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>
-              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.taste/50)*100}%"></div></div>
-              <span class="subscore-val">${r.taste}</span>
-            </div>
-            <div class="subscore-row">
-              <span class="subscore-lbl">Value <span class="subscore-lbl-max">/25</span></span>
-              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.value/25)*100}%"></div></div>
-              <span class="subscore-val">${r.value}</span>
-            </div>
-            <div class="subscore-row">
-              <span class="subscore-lbl">Experience <span class="subscore-lbl-max">/25</span></span>
-              <div class="subscore-track"><div class="subscore-fill" style="width:${(r.experience/25)*100}%"></div></div>
-              <span class="subscore-val">${r.experience}</span>
-            </div>
-          </div>
-          ${photoHTML}
-        </div>`;
-    }
-
+    // ── State ──
     let currentSort = 'total';
+    let activeRatingTab = 'ours';
+
+    // ── Helpers ──
+    function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
 
     function sortKey(r) {
       if (currentSort === 'taste') return r.taste || 0;
@@ -321,112 +343,113 @@
       return total(r);
     }
 
-    function setSort(key) {
-      currentSort = key;
-      ['total','taste','value','experience'].forEach(k => {
-        document.getElementById(`sort-${k}`).classList.toggle('active', k === key);
-      });
-      renderRatings();
-      renderCommunity();
+    function ratingCardHTML(r, idx) {
+      const score = Math.round(total(r) * 10) / 10;
+      const isTop = score >= 80;
+      const tags = Array.isArray(r.tags) ? r.tags : [];
+      const tagsHTML = tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : '';
+      const photoHTML = r.photo_url ? `<div class="photo-strip"><img src="${r.photo_url}" alt="${r.name}" loading="lazy" /></div>` : '';
+      const submitterHTML = r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : '';
+      const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
+      return `
+        <div class="rating-card" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-name">${r.name}</div>
+              <div class="card-meta">${r.location} &middot; ${r.date}${typeLabel ? ' &middot; ' + typeLabel : ''}</div>
+            </div>
+            <div class="card-header-right">
+              <span class="card-score${isTop ? ' top' : ''}">${score} <span class="card-denom">/100</span></span>
+              <svg class="card-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-body-inner">
+              <div class="card-detail">
+                ${submitterHTML}
+                <p class="card-note">${r.note}</p>
+                <div class="card-subscores">
+                  <div class="subscore-row">
+                    <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>
+                    <div class="subscore-track"><div class="subscore-fill" style="width:${(r.taste/50)*100}%"></div></div>
+                    <span class="subscore-val">${r.taste}</span>
+                  </div>
+                  <div class="subscore-row">
+                    <span class="subscore-lbl">Value <span class="subscore-lbl-max">/25</span></span>
+                    <div class="subscore-track"><div class="subscore-fill" style="width:${(r.value/25)*100}%"></div></div>
+                    <span class="subscore-val">${r.value}</span>
+                  </div>
+                  <div class="subscore-row">
+                    <span class="subscore-lbl">Experience <span class="subscore-lbl-max">/25</span></span>
+                    <div class="subscore-track"><div class="subscore-fill" style="width:${(r.experience/25)*100}%"></div></div>
+                    <span class="subscore-val">${r.experience}</span>
+                  </div>
+                </div>
+                ${tagsHTML}
+                ${photoHTML}
+              </div>
+            </div>
+          </div>
+        </div>`;
     }
 
-    function renderRatings() {
-      const container = document.getElementById('ratingCards');
-      const empty = document.getElementById('emptyState');
-      const sorted = [...allRatings].sort((a, b) => sortKey(b) - sortKey(a));
-      container.innerHTML = sorted.map(r => ratingCardHTML(r, false)).join('');
-      empty.style.display = sorted.length === 0 ? 'block' : 'none';
+    // ── Render ──
+    function renderList(data, containerId) {
+      const container = document.getElementById(containerId);
+      const sorted = [...data].sort((a, b) => sortKey(b) - sortKey(a));
+      container.innerHTML = sorted.map((r, i) => ratingCardHTML(r, i)).join('');
+      observeCards(container);
     }
 
-    function renderCommunity() {
-      const container = document.getElementById('communityCards');
-      const empty = document.getElementById('communityEmptyState');
-      const sorted = [...communityRatings].sort((a, b) => sortKey(b) - sortKey(a));
-      container.innerHTML = sorted.map(r => ratingCardHTML(r, true)).join('');
-      empty.style.display = sorted.length === 0 ? 'block' : 'none';
-    }
-
-    function switchTab(tab) {
-      activeTab = tab;
-      document.getElementById('tab-ours').classList.toggle('active', tab === 'ours');
-      document.getElementById('tab-community').classList.toggle('active', tab === 'community');
-      document.getElementById('oursPanel').style.display = tab === 'ours' ? 'block' : 'none';
-      document.getElementById('communityPanel').style.display = tab === 'community' ? 'block' : 'none';
-    }
+    function renderRatings() { renderList(allRatings, 'ratingCards'); }
+    function renderCommunity() { renderList(communityRatings, 'communityCards'); }
 
     function renderBlog() {
       const list = document.getElementById('postList');
       list.innerHTML = allPosts.map((p, i) => `
-        <div class="post-item" onclick="openPost(${i})">
+        <div class="post-item" onclick="openPost(${i})" style="transition-delay:${i * 0.07}s">
           <p class="post-meta">${p.date} &middot; ${p.read}</p>
           <p class="post-title">${p.title}</p>
           <p class="post-excerpt">${p.preamble}</p>
           <span class="tag">${p.tag}</span>
         </div>`).join('');
+      observeCards(list);
     }
 
     function openPost(i) {
       const p = allPosts[i];
-      document.getElementById('postTitle').innerHTML = p.title;
-      document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0;">${p.tag}</span>`;
+      document.getElementById('postTitle').textContent = p.title;
+      document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0">${p.tag}</span>`;
       document.getElementById('postBody').innerHTML = p.post || p._body || p.body || '';
       show('post');
     }
 
-    function openModal() {
-      document.getElementById('modalOverlay').classList.add('open');
-      document.body.style.overflow = 'hidden';
+    // ── Sort ──
+    function setSort(key) {
+      currentSort = key;
+      ['total','taste','value','experience'].forEach(k =>
+        document.getElementById(`sort-${k}`).classList.toggle('active', k === key)
+      );
+      renderRatings();
+      renderCommunity();
     }
 
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('open');
-      document.body.style.overflow = '';
+    // ── Tab switching (Austin & Jamie / Community) ──
+    function switchRatingTab(tab) {
+      activeRatingTab = tab;
+      document.getElementById('tab-ours').classList.toggle('active', tab === 'ours');
+      document.getElementById('tab-community').classList.toggle('active', tab === 'community');
+      document.getElementById('oursPanel').style.display = tab === 'ours' ? 'block' : 'none';
+      document.getElementById('communityPanel').style.display = tab === 'community' ? 'block' : 'none';
+      document.getElementById('submitLink').classList.toggle('visible', tab === 'community');
     }
 
-    function closeModalOutside(e) {
-      if (e.target === document.getElementById('modalOverlay')) closeModal();
-    }
-
-    async function handleSubmit(e) {
-      e.preventDefault();
-      const form = e.target;
-      const submitBtn = form.querySelector('.form-submit');
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting...';
-      try {
-        const data = new FormData(form);
-        const photoFile = document.getElementById('communityPhoto').files[0];
-        if (photoFile) {
-          submitBtn.textContent = 'Uploading photo...';
-          const fd = new FormData();
-          fd.append('file', photoFile);
-          fd.append('upload_preset', 'ExtraTurnip_default');
-          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: fd });
-          if (res.ok) {
-            const json = await res.json();
-            data.set('photo_url', json.secure_url);
-          }
-        }
-        data.delete('photo_file');
-        await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams(data).toString()
-        });
-        document.getElementById('formWrap').style.display = 'none';
-        document.getElementById('formSuccess').style.display = 'block';
-      } catch {
-        alert('Something went wrong, please try again.');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit Rating';
-      }
-    }
-
+    // ── Page switching ──
     function show(id) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      ['ratings', 'blog', 'about'].forEach(n => {
+      lenis.scrollTo(0, { immediate: true });
+      ['ratings','blog','about'].forEach(n => {
         const el = document.getElementById('nav-' + n);
         if (el) el.classList.toggle('active', n === id);
       });
@@ -434,19 +457,71 @@
       if (id === 'blog') renderBlog();
     }
 
+    // ── Card expand/collapse ──
+    document.addEventListener('click', e => {
+      const card = e.target.closest('.rating-card');
+      if (!card) return;
+      const wasExpanded = card.classList.contains('expanded');
+      document.querySelectorAll('.rating-card.expanded').forEach(c => c.classList.remove('expanded'));
+      if (!wasExpanded) card.classList.add('expanded');
+    });
+
+    // ── Fade-in observer ──
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
+    function observeCards(container) {
+      container.querySelectorAll('.rating-card, .post-item').forEach(el => fadeObserver.observe(el));
+    }
+
+    // ── Modal ──
+    function openModal() {
+      document.getElementById('modalOverlay').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    // ── Community form submit ──
+    async function handleSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = form.querySelector('.form-submit');
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      try {
+        const data = new FormData(form);
+        const photoFile = document.getElementById('communityPhoto').files[0];
+        if (photoFile) {
+          btn.textContent = 'Uploading photo...';
+          const fd = new FormData();
+          fd.append('file', photoFile);
+          fd.append('upload_preset', 'ExtraTurnip_default');
+          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: fd });
+          if (res.ok) { const json = await res.json(); data.set('photo_url', json.secure_url); }
+        }
+        data.delete('photo_file');
+        await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data).toString() });
+        document.getElementById('formWrap').style.display = 'none';
+        document.getElementById('formSuccess').style.display = 'block';
+      } catch {
+        alert('Something went wrong, please try again.');
+        btn.disabled = false; btn.textContent = 'Submit Rating';
+      }
+    }
+
+    // ── Init ──
     window.addEventListener('load', () => { renderRatings(); renderCommunity(); renderBlog(); });
-  </script>    
-  <form name="community-rating" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input type="hidden" name="form-name" value="community-rating" />
-  <input name="submitter" />
-  <input name="name" />
-  <input name="location" />
-  <select name="type"><option>chicken</option><option>lamb</option><option>mixed</option></select>
-  <textarea name="note"></textarea>
-  <input name="taste" type="number" />
-  <input name="value" type="number" />
-  <input name="experience" type="number" />
-  <input name="photo_url" />
-</form>
+  </script>
 </body>
 </html>

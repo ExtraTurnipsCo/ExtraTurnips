@@ -498,20 +498,31 @@
       e.preventDefault();
       const form = e.target;
       const btn = form.querySelector('.form-submit');
+      const fd = new FormData(form);
       btn.disabled = true; btn.textContent = 'Submitting...';
       try {
-        const data = new FormData(form);
+        let photo_url = '';
         const photoFile = document.getElementById('communityPhoto').files[0];
         if (photoFile) {
           btn.textContent = 'Uploading photo...';
-          const fd = new FormData();
-          fd.append('file', photoFile);
-          fd.append('upload_preset', 'ExtraTurnip_default');
-          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: fd });
-          if (res.ok) { const json = await res.json(); data.set('photo_url', json.secure_url); }
+          const cfd = new FormData();
+          cfd.append('file', photoFile);
+          cfd.append('upload_preset', 'ExtraTurnip_default');
+          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: cfd });
+          if (res.ok) { photo_url = (await res.json()).secure_url; }
         }
-        data.delete('photo_file');
-        await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data).toString() });
+        const params = new URLSearchParams();
+        params.set('form-name', 'community-rating');
+        params.set('submitter', fd.get('submitter') || '');
+        params.set('name', fd.get('name') || '');
+        params.set('location', fd.get('location') || '');
+        params.set('type', fd.get('type') || 'chicken');
+        params.set('note', fd.get('note') || '');
+        params.set('taste', fd.get('taste') || '');
+        params.set('value', fd.get('value') || '');
+        params.set('experience', fd.get('experience') || '');
+        if (photo_url) params.set('photo_url', photo_url);
+        await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() });
         document.getElementById('formWrap').style.display = 'none';
         document.getElementById('formSuccess').style.display = 'block';
       } catch {

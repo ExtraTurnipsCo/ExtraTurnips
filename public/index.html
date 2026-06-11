@@ -484,10 +484,12 @@
     function openModal() {
       document.getElementById('modalOverlay').classList.add('open');
       document.body.style.overflow = 'hidden';
+      lenis.stop();
     }
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('open');
       document.body.style.overflow = '';
+      lenis.start();
     }
     function closeModalOutside(e) {
       if (e.target === document.getElementById('modalOverlay')) closeModal();

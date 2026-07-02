@@ -5,7 +5,16 @@ const NETLIFY_TOKEN = process.env.NETLIFY_ACCESS_TOKEN;
 const NETLIFY_SITE_ID = '6e3a0085-c939-4ec4-83ea-2120851e940e';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const REPO = 'ExtraTurnipsCo/ExtraTurnips';
-const BRANCH = process.env.BRANCH || 'main';
+
+function resolveBranch(event) {
+  const headers = event.headers || {};
+  if (headers['x-nf-deploy-context'] === 'branch-deploy') {
+    const suffix = `--${process.env.SITE_NAME}.netlify.app`;
+    const host = headers['host'] || '';
+    if (host.endsWith(suffix)) return host.slice(0, -suffix.length);
+  }
+  return 'main';
+}
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -27,11 +36,11 @@ function currentDate() {
   return new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 }
 
-async function githubPutFile(path, content, message, sha) {
+async function githubPutFile(path, content, message, sha, branch) {
   const body = {
     message,
     content: Buffer.from(content).toString('base64'),
-    branch: BRANCH
+    branch
   };
   if (sha) body.sha = sha;
   const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
@@ -47,8 +56,8 @@ async function githubPutFile(path, content, message, sha) {
   return res.json();
 }
 
-async function githubListDir(path) {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`, {
+async function githubListDir(path, branch) {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${branch}`, {
     headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'ExtraTurnips-Admin' }
   });
   if (!res.ok) throw new Error(`GitHub error ${res.status}: ${await res.text()}`);
@@ -60,8 +69,8 @@ function parseFrontmatter(text) {
   return match ? (yaml.load(match[1]) || {}) : {};
 }
 
-async function listRatings() {
-  const items = await githubListDir('content/ratings');
+async function listRatings(branch) {
+  const items = await githubListDir('content/ratings', branch);
   const files = items.filter(i => i.type === 'file' && i.name.endsWith('.md'));
   const ratings = await Promise.all(files.map(async f => {
     const res = await fetch(f.download_url);
@@ -130,17 +139,13 @@ exports.handler = async function(event) {
     return { statusCode: 401, headers: CORS, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
+  const branch = resolveBranch(event);
+
   try {
     if (event.httpMethod === 'GET') {
       const action = (event.queryStringParameters || {}).action;
-      if (action === 'debug-env') {
-        return { statusCode: 200, headers: CORS, body: JSON.stringify({
-          env_keys: Object.keys(process.env).sort(),
-          headers: event.headers
-        }) };
-      }
       if (action === 'list-ratings') {
-        const ratings = await listRatings();
+        const ratings = await listRatings(branch);
         return { statusCode: 200, headers: CORS, body: JSON.stringify(ratings) };
       }
       const submissions = await getSubmissions();
@@ -153,20 +158,20 @@ exports.handler = async function(event) {
       if (body.action === 'create-rating') {
         const md = buildRatingMarkdown(body);
         const file = `${slugify(body.name)}-${Date.now()}.md`;
-        await githubPutFile(`content/ratings/${file}`, md, `Add rating: ${body.name}`);
+        await githubPutFile(`content/ratings/${file}`, md, `Add rating: ${body.name}`, undefined, branch);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
       }
 
       if (body.action === 'update-rating') {
         const md = buildRatingMarkdown(body);
-        const result = await githubPutFile(body.path, md, `Edit rating: ${body.name}`, body.sha);
+        const result = await githubPutFile(body.path, md, `Edit rating: ${body.name}`, body.sha, branch);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true, sha: result.content.sha }) };
       }
 
       if (body.action === 'approve') {
         const md = buildRatingMarkdown(body);
         const file = `${slugify(body.name)}-${Date.now()}.md`;
-        await githubPutFile(`content/ratings/${file}`, md, `Approve community rating: ${body.name}`);
+        await githubPutFile(`content/ratings/${file}`, md, `Approve community rating: ${body.name}`, undefined, branch);
         if (body.submissionId) await deleteSubmission(body.submissionId);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
       }
@@ -179,7 +184,7 @@ exports.handler = async function(event) {
       if (body.action === 'create-post') {
         const md = buildPostMarkdown(body);
         const file = `${slugify(body.title)}-${Date.now()}.md`;
-        await githubPutFile(`content/posts/${file}`, md, `Add post: ${body.title}`);
+        await githubPutFile(`content/posts/${file}`, md, `Add post: ${body.title}`, undefined, branch);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
       }
     }

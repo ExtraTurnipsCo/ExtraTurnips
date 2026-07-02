@@ -26,7 +26,13 @@ function currentDate() {
   return new Date().toLocaleDateString('en-CA', { month: 'short', year: 'numeric' });
 }
 
-async function githubCreateFile(path, content, message) {
+async function githubPutFile(path, content, message, sha) {
+  const body = {
+    message,
+    content: Buffer.from(content).toString('base64'),
+    branch: 'main'
+  };
+  if (sha) body.sha = sha;
   const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
     method: 'PUT',
     headers: {
@@ -34,14 +40,35 @@ async function githubCreateFile(path, content, message) {
       'Content-Type': 'application/json',
       'User-Agent': 'ExtraTurnips-Admin'
     },
-    body: JSON.stringify({
-      message,
-      content: Buffer.from(content).toString('base64'),
-      branch: 'main'
-    })
+    body: JSON.stringify(body)
   });
   if (!res.ok) throw new Error(`GitHub error ${res.status}: ${await res.text()}`);
   return res.json();
+}
+
+async function githubListDir(path) {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'ExtraTurnips-Admin' }
+  });
+  if (!res.ok) throw new Error(`GitHub error ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
+function parseFrontmatter(text) {
+  const match = text.match(/^---\n([\s\S]*?)\n---/);
+  return match ? (yaml.load(match[1]) || {}) : {};
+}
+
+async function listRatings() {
+  const items = await githubListDir('content/ratings');
+  const files = items.filter(i => i.type === 'file' && i.name.endsWith('.md'));
+  const ratings = await Promise.all(files.map(async f => {
+    const res = await fetch(f.download_url);
+    const fm = parseFrontmatter(await res.text());
+    return { ...fm, path: f.path, sha: f.sha };
+  }));
+  ratings.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  return ratings;
 }
 
 async function getSubmissions() {
@@ -104,6 +131,11 @@ exports.handler = async function(event) {
 
   try {
     if (event.httpMethod === 'GET') {
+      const action = (event.queryStringParameters || {}).action;
+      if (action === 'list-ratings') {
+        const ratings = await listRatings();
+        return { statusCode: 200, headers: CORS, body: JSON.stringify(ratings) };
+      }
       const submissions = await getSubmissions();
       return { statusCode: 200, headers: CORS, body: JSON.stringify(submissions) };
     }
@@ -114,14 +146,20 @@ exports.handler = async function(event) {
       if (body.action === 'create-rating') {
         const md = buildRatingMarkdown(body);
         const file = `${slugify(body.name)}-${Date.now()}.md`;
-        await githubCreateFile(`content/ratings/${file}`, md, `Add rating: ${body.name}`);
+        await githubPutFile(`content/ratings/${file}`, md, `Add rating: ${body.name}`);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
+      }
+
+      if (body.action === 'update-rating') {
+        const md = buildRatingMarkdown(body);
+        const result = await githubPutFile(body.path, md, `Edit rating: ${body.name}`, body.sha);
+        return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true, sha: result.content.sha }) };
       }
 
       if (body.action === 'approve') {
         const md = buildRatingMarkdown(body);
         const file = `${slugify(body.name)}-${Date.now()}.md`;
-        await githubCreateFile(`content/ratings/${file}`, md, `Approve community rating: ${body.name}`);
+        await githubPutFile(`content/ratings/${file}`, md, `Approve community rating: ${body.name}`);
         if (body.submissionId) await deleteSubmission(body.submissionId);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
       }
@@ -134,7 +172,7 @@ exports.handler = async function(event) {
       if (body.action === 'create-post') {
         const md = buildPostMarkdown(body);
         const file = `${slugify(body.title)}-${Date.now()}.md`;
-        await githubCreateFile(`content/posts/${file}`, md, `Add post: ${body.title}`);
+        await githubPutFile(`content/posts/${file}`, md, `Add post: ${body.title}`);
         return { statusCode: 200, headers: CORS, body: JSON.stringify({ ok: true }) };
       }
     }

@@ -79,6 +79,8 @@
     .btn-reject { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 1.25rem; background: none; color: var(--red); border: 1px solid var(--red); border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
     .btn-reject:hover { opacity: 0.7; }
     .btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-cancel { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 1.25rem; background: none; color: var(--text-muted); border: 1px solid var(--border); border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
+    .btn-cancel:hover { color: var(--text-primary); }
     .sub-feedback { font-size: 0.78rem; margin-left: 0.5rem; }
     .sub-feedback.ok { color: var(--green); }
     .sub-feedback.err { color: var(--red); }
@@ -107,6 +109,7 @@
       <button class="tab-btn active" id="tab-rating" onclick="switchTab('rating')">Add Rating</button>
       <button class="tab-btn" id="tab-post" onclick="switchTab('post')">Add Post</button>
       <button class="tab-btn" id="tab-pending" onclick="switchTab('pending')">Pending</button>
+      <button class="tab-btn" id="tab-edit" onclick="switchTab('edit')">Edit Review</button>
     </div>
 
     <div class="tab-panel active" id="panel-rating">
@@ -205,6 +208,12 @@
       <p class="section-label">Community Submissions</p>
       <div id="pendingList"><p class="pending-empty">Loading...</p></div>
     </div>
+
+    <div class="tab-panel" id="panel-edit">
+      <p class="section-label">Edit Existing Reviews</p>
+      <input type="text" id="editSearch" placeholder="Search by name or location..." oninput="renderEditList()" style="width:100%;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:300;background:transparent;border:1px solid var(--border);border-radius:3px;padding:0.5rem 0.75rem;color:var(--text-primary);outline:none;margin-bottom:1.5rem;" />
+      <div id="editList"><p class="pending-empty">Loading...</p></div>
+    </div>
   </div>
 </div>
 
@@ -262,19 +271,20 @@
   document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 
   function switchTab(name) {
-    ['rating','post','pending'].forEach(t => {
+    ['rating','post','pending','edit'].forEach(t => {
       document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
       document.getElementById(`panel-${t}`).classList.toggle('active', t === name);
     });
+    if (name === 'edit' && !allRatingsCache.length) loadRatingsList();
   }
 
-  async function api(method, body) {
+  async function api(method, body, action) {
     const opts = {
       method,
       headers: { 'Authorization': `Bearer ${getPassword()}`, 'Content-Type': 'application/json' }
     };
     if (body) opts.body = JSON.stringify(body);
-    const res = await fetch(FN + (method === 'GET' ? '?action=submissions' : ''), opts);
+    const res = await fetch(FN + (method === 'GET' ? `?action=${action || 'submissions'}` : ''), opts);
     if (!res.ok) throw new Error(await res.text());
     return res.json();
   }
@@ -404,6 +414,112 @@
       fb.className = 'sub-feedback err';
       aBtn.disabled = rBtn.disabled = false;
       rBtn.textContent = 'Reject';
+    }
+  }
+
+  let allRatingsCache = [];
+
+  function ratingKey(path) { return path.replace(/[^a-zA-Z0-9]/g, '_'); }
+
+  async function loadRatingsList() {
+    const list = document.getElementById('editList');
+    try {
+      allRatingsCache = await api('GET', null, 'list-ratings');
+      renderEditList();
+    } catch(err) {
+      list.innerHTML = `<p class="pending-empty" style="color:var(--red)">Failed to load: ${err.message}</p>`;
+    }
+  }
+
+  function renderEditList() {
+    const list = document.getElementById('editList');
+    const q = document.getElementById('editSearch').value.trim().toLowerCase();
+    const filtered = allRatingsCache.filter(r => !q || (r.name||'').toLowerCase().includes(q) || (r.location||'').toLowerCase().includes(q));
+    if (!filtered.length) { list.innerHTML = '<p class="pending-empty">No reviews found.</p>'; return; }
+    list.innerHTML = filtered.map(r => buildEditCard(r)).join('');
+  }
+
+  function buildEditCard(r) {
+    const taste = parseFloat(r.taste)||0, val = parseFloat(r.value)||0, exp = parseFloat(r.experience)||0;
+    const total = Math.round((taste+val+exp)*10)/10;
+    const key = ratingKey(r.path);
+    return `<div class="sub-card" id="edit-${key}">
+      <div class="sub-card-top">
+        <span class="sub-name">${esc(r.name)}</span>
+        <span class="sub-score">${total} <span class="sub-score-denom">/100</span></span>
+      </div>
+      <div class="sub-meta">${esc(r.location)} &middot; ${esc(r.date)}</div>
+      <p class="sub-note">${esc(r.note)}</p>
+      <div class="sub-actions">
+        <button class="btn-approve" onclick="startEdit('${key}')">Edit</button>
+      </div>
+    </div>`;
+  }
+
+  function startEdit(key) {
+    const r = allRatingsCache.find(x => ratingKey(x.path) === key);
+    const card = document.getElementById(`edit-${key}`);
+    card.innerHTML = `
+      <div class="form-row"><label>Restaurant Name</label><input type="text" id="ef-name-${key}" value="${esc(r.name)}" /></div>
+      <div class="form-row"><label>Location</label><input type="text" id="ef-location-${key}" value="${esc(r.location)}" /></div>
+      <div class="form-row"><label>Date</label><input type="text" id="ef-date-${key}" value="${esc(r.date)}" /></div>
+      <div class="form-row"><label>Type</label>
+        <select id="ef-type-${key}">
+          <option value="chicken" ${r.type==='chicken'?'selected':''}>Chicken</option>
+          <option value="lamb" ${r.type==='lamb'?'selected':''}>Lamb</option>
+          <option value="mixed" ${r.type==='mixed'?'selected':''}>Mixed</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Review</label><textarea id="ef-note-${key}">${esc(r.note)}</textarea></div>
+      <div class="form-scores">
+        <div class="form-row"><label>Taste /50</label><input type="number" min="0" max="50" step="0.5" id="ef-taste-${key}" value="${esc(r.taste)}" /></div>
+        <div class="form-row"><label>Value /25</label><input type="number" min="0" max="25" step="0.5" id="ef-value-${key}" value="${esc(r.value)}" /></div>
+        <div class="form-row"><label>Experience /25</label><input type="number" min="0" max="25" step="0.5" id="ef-experience-${key}" value="${esc(r.experience)}" /></div>
+      </div>
+      <div class="form-row"><label>Tags</label><input type="text" id="ef-tags-${key}" value="${esc((r.tags||[]).join(', '))}" /></div>
+      <div class="sub-actions">
+        <button class="btn-approve" id="ef-save-${key}" onclick="saveEdit('${key}')">Save Changes</button>
+        <button class="btn-cancel" onclick="renderEditList()">Cancel</button>
+        <span class="sub-feedback" id="ef-feedback-${key}"></span>
+      </div>`;
+  }
+
+  async function saveEdit(key) {
+    const r = allRatingsCache.find(x => ratingKey(x.path) === key);
+    const btn = document.getElementById(`ef-save-${key}`);
+    const fb = document.getElementById(`ef-feedback-${key}`);
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const body = {
+      action: 'update-rating',
+      path: r.path,
+      sha: r.sha,
+      name: document.getElementById(`ef-name-${key}`).value,
+      location: document.getElementById(`ef-location-${key}`).value,
+      date: document.getElementById(`ef-date-${key}`).value,
+      type: document.getElementById(`ef-type-${key}`).value,
+      note: document.getElementById(`ef-note-${key}`).value,
+      taste: document.getElementById(`ef-taste-${key}`).value,
+      value: document.getElementById(`ef-value-${key}`).value,
+      experience: document.getElementById(`ef-experience-${key}`).value,
+      tags: document.getElementById(`ef-tags-${key}`).value,
+      submitter: r.submitter,
+      photos: r.photos,
+      photo_url: r.photo_url
+    };
+    try {
+      const result = await api('POST', body);
+      Object.assign(r, {
+        name: body.name, location: body.location, date: body.date, type: body.type,
+        note: body.note, taste: body.taste, value: body.value, experience: body.experience,
+        tags: body.tags.split(',').map(t => t.trim()).filter(Boolean), sha: result.sha
+      });
+      fb.textContent = 'Saved — site will redeploy shortly.';
+      fb.className = 'sub-feedback ok';
+      setTimeout(renderEditList, 900);
+    } catch(err) {
+      fb.textContent = 'Error: ' + err.message;
+      fb.className = 'sub-feedback err';
+      btn.disabled = false; btn.textContent = 'Save Changes';
     }
   }
 

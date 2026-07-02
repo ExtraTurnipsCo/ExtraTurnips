@@ -184,5 +184,18 @@ for (const dir of ['public/ratings', 'public/posts']) {
 allRatings.forEach(r => fs.writeFileSync(path.join('public/ratings', `${r.slug}.html`), ratingPageHTML(r)));
 posts.forEach(p => fs.writeFileSync(path.join('public/posts', `${p.slug}.html`), postPageHTML(p)));
 
+const sitemapUrls = [
+  SITE_URL + '/',
+  ...allRatings.map(r => `${SITE_URL}/ratings/${r.slug}.html`),
+  ...posts.map(p => `${SITE_URL}/posts/${p.slug}.html`)
+];
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemapUrls.map(u => `  <url><loc>${esc(u)}</loc></url>`).join('\n')}
+</urlset>
+`;
+fs.writeFileSync('public/sitemap.xml', sitemap);
+
 console.log(`Built with ${adminRatings.length} ratings, ${communityRatings.length} community, ${posts.length} posts`);
 console.log(`Generated ${allRatings.length} rating permalinks, ${posts.length} post permalinks`);
+console.log(`Generated sitemap.xml with ${sitemapUrls.length} URLs`);

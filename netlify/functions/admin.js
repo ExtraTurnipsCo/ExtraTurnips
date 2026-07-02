@@ -5,6 +5,7 @@ const NETLIFY_TOKEN = process.env.NETLIFY_ACCESS_TOKEN;
 const NETLIFY_SITE_ID = '6e3a0085-c939-4ec4-83ea-2120851e940e';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const REPO = 'ExtraTurnipsCo/ExtraTurnips';
+const BRANCH = process.env.BRANCH || 'main';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -30,7 +31,7 @@ async function githubPutFile(path, content, message, sha) {
   const body = {
     message,
     content: Buffer.from(content).toString('base64'),
-    branch: 'main'
+    branch: BRANCH
   };
   if (sha) body.sha = sha;
   const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
@@ -47,7 +48,7 @@ async function githubPutFile(path, content, message, sha) {
 }
 
 async function githubListDir(path) {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`, {
     headers: { 'Authorization': `token ${GITHUB_TOKEN}`, 'User-Agent': 'ExtraTurnips-Admin' }
   });
   if (!res.ok) throw new Error(`GitHub error ${res.status}: ${await res.text()}`);

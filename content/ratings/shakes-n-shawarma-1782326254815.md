@@ -17,7 +17,7 @@ note: >-
   have been a fluke but had I been eating in the store I would've made an
   absolute mess. Luckily I was outside and the Spadina Ave pigeons were able to
   clean up what I couldn't.
-taste: 36
+taste: 34
 value: 20
 experience: 19
 photo_url: >-

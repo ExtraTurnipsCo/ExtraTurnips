@@ -133,6 +133,17 @@ exports.handler = async function(event) {
   try {
     if (event.httpMethod === 'GET') {
       const action = (event.queryStringParameters || {}).action;
+      if (action === 'debug-env') {
+        return { statusCode: 200, headers: CORS, body: JSON.stringify({
+          BRANCH_var: BRANCH,
+          raw_BRANCH: process.env.BRANCH,
+          CONTEXT: process.env.CONTEXT,
+          DEPLOY_ID: process.env.DEPLOY_ID,
+          SITE_NAME: process.env.SITE_NAME,
+          HEAD: process.env.HEAD,
+          COMMIT_REF: process.env.COMMIT_REF
+        }) };
+      }
       if (action === 'list-ratings') {
         const ratings = await listRatings();
         return { statusCode: 200, headers: CORS, body: JSON.stringify(ratings) };

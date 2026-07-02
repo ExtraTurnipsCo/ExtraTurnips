@@ -85,11 +85,15 @@
     .subscore-val { font-size: 0.7rem; color: var(--secondary); width: 2rem; text-align: right; flex-shrink: 0; }
     .card-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0; }
     .tag { display: inline-block; font-size: 0.67rem; letter-spacing: 0.05em; text-transform: uppercase; background: var(--tag-bg); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
+    .card-permalink { display: inline-block; margin-top: 0.85rem; font-size: 0.68rem; letter-spacing: 0.05em; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+    .card-permalink:hover { color: var(--text); border-color: var(--text); }
+    .post-permalink { font-size: 0.75rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+    .post-permalink:hover { color: var(--text); border-color: var(--text); }
 
     /* Photo strip */
     .photo-strip { display: flex; gap: 0.5rem; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 1.1rem; border-radius: 4px; }
     .photo-strip::-webkit-scrollbar { display: none; }
-    .photo-strip img { scroll-snap-align: start; flex-shrink: 0; width: 100%; max-height: 210px; object-fit: cover; border-radius: 4px; }
+    .photo-strip img { scroll-snap-align: start; flex-shrink: 0; width: 100%; max-height: 360px; object-fit: contain; background: var(--tag-bg); border-radius: 4px; }
 
     .empty-state { padding: 3rem 0; font-size: 0.88rem; color: var(--muted); font-style: italic; }
 
@@ -296,8 +300,8 @@
             </div>
           </div>
           <div class="form-row">
-            <label>Photo (optional)</label>
-            <input type="file" name="photo_file" id="communityPhoto" accept="image/*" />
+            <label>Photos (optional)</label>
+            <input type="file" name="photo_file" id="communityPhoto" accept="image/*" multiple />
           </div>
           <button type="submit" class="form-submit">Submit Rating</button>
         </form>
@@ -315,7 +319,7 @@
     <select name="type"><option>chicken</option><option>lamb</option><option>mixed</option></select>
     <textarea name="note"></textarea>
     <input name="taste" type="number" /><input name="value" type="number" /><input name="experience" type="number" />
-    <input name="photo_url" />
+    <input name="photos" />
   </form>
 
   <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
@@ -349,7 +353,8 @@
       const isTop = score >= 80;
       const tags = Array.isArray(r.tags) ? r.tags : [];
       const tagsHTML = tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : '';
-      const photoHTML = r.photo_url ? `<div class="photo-strip"><img src="${r.photo_url}" alt="${r.name}" loading="lazy" /></div>` : '';
+      const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
+      const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${src}" alt="${r.name}" loading="lazy" />`).join('')}</div>` : '';
       const submitterHTML = r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : '';
       const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
       return `
@@ -388,6 +393,7 @@
                 </div>
                 ${tagsHTML}
                 ${photoHTML}
+                <a class="card-permalink" href="/ratings/${r.slug}.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Permalink &#x2197;</a>
               </div>
             </div>
           </div>
@@ -420,7 +426,7 @@
     function openPost(i) {
       const p = allPosts[i];
       document.getElementById('postTitle').textContent = p.title;
-      document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0">${p.tag}</span>`;
+      document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0">${p.tag}</span> <a class="post-permalink" href="/posts/${p.slug}.html" target="_blank" rel="noopener">Permalink &#x2197;</a>`;
       document.getElementById('postBody').innerHTML = p.post || p._body || p.body || '';
       show('post');
     }
@@ -504,15 +510,17 @@
       const fd = new FormData(form);
       btn.disabled = true; btn.textContent = 'Submitting...';
       try {
-        let photo_url = '';
-        const photoFile = document.getElementById('communityPhoto').files[0];
-        if (photoFile) {
-          btn.textContent = 'Uploading photo...';
-          const cfd = new FormData();
-          cfd.append('file', photoFile);
-          cfd.append('upload_preset', 'ExtraTurnip_default');
-          const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: cfd });
-          if (res.ok) { photo_url = (await res.json()).secure_url; }
+        const photoFiles = Array.from(document.getElementById('communityPhoto').files);
+        const photoUrls = [];
+        if (photoFiles.length) {
+          btn.textContent = `Uploading photo${photoFiles.length > 1 ? 's' : ''}...`;
+          for (const photoFile of photoFiles) {
+            const cfd = new FormData();
+            cfd.append('file', photoFile);
+            cfd.append('upload_preset', 'ExtraTurnip_default');
+            const res = await fetch('https://api.cloudinary.com/v1_1/dk5zuikbf/image/upload', { method: 'POST', body: cfd });
+            if (res.ok) { photoUrls.push((await res.json()).secure_url); }
+          }
         }
         const params = new URLSearchParams();
         params.set('form-name', 'community-rating');
@@ -524,7 +532,7 @@
         params.set('taste', fd.get('taste') || '');
         params.set('value', fd.get('value') || '');
         params.set('experience', fd.get('experience') || '');
-        if (photo_url) params.set('photo_url', photo_url);
+        if (photoUrls.length) params.set('photos', photoUrls.join(','));
         await fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params.toString() });
         document.getElementById('formWrap').style.display = 'none';
         document.getElementById('formSuccess').style.display = 'block';

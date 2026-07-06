@@ -12,9 +12,9 @@ note: >-
   Asian dude. When in Copenhagen avoid this place. Oskar found his decent but he
   got different meat than I did. I’ll treat experience and value separately from
   taste 
-taste: 20
-value: 19
-experience: 18
+taste: 17
+value: 17
+experience: 17
 photos:
   - >-
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1783338451/rmc9pchua1yrshc6ljxs.jpg

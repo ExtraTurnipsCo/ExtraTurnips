@@ -499,7 +499,15 @@
         return marker;
       });
 
-      const bounds = L.latLngBounds(located.map(r => [r.lat, r.lng]));
+      // Fit the initial view to the GTA cluster rather than every pin — a
+      // single far-off rating (e.g. one in another country) would otherwise
+      // force the map to zoom out to world scale, collapsing all the local
+      // pins on top of each other. Outliers still get a marker; they're just
+      // reachable by panning/zooming out instead of being in the default view.
+      const GTA_BOUNDS = L.latLngBounds([43.0, -80.5], [44.5, -78.5]);
+      const local = located.filter(r => GTA_BOUNDS.contains([r.lat, r.lng]));
+      const boundsSource = local.length ? local : located;
+      const bounds = L.latLngBounds(boundsSource.map(r => [r.lat, r.lng]));
       leafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
       setTimeout(() => leafletMap.invalidateSize(), 0);
     }

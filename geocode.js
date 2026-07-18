@@ -43,6 +43,17 @@ function geocodeFreeform(query) {
   return fetchGeocode(url);
 }
 
+// Nominatim's parser can choke on certain accented letters even when the
+// rest of the address is fine (e.g. Danish "Nørre Voldgade" finds nothing,
+// but "Norre Voldgade" does). Used as a fallback, not primary, since the
+// un-transliterated form is more likely to match when it works.
+const ASCII_MAP = { 'ø': 'o', 'Ø': 'O', 'å': 'a', 'Å': 'A', 'æ': 'ae', 'Æ': 'AE', 'ß': 'ss' };
+function toAsciiApprox(s) {
+  return s
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[øØåÅæÆß]/g, ch => ASCII_MAP[ch]);
+}
+
 // Strips the parts of a raw location string that confuse Nominatim's street
 // parser: unit-number prefixes ("1103-145 X" -> "145 X"), unit suffixes
 // ("X #3" / "X Unit 3"), and any trailing city/province/postal/country text
@@ -58,17 +69,31 @@ function cleanStreet(base) {
     .replace(/,\s*$/, '');
 }
 
-// Ratings are almost all bare GTA street addresses (e.g. "21 Davisville
-// Avenue"); a handful explicitly name a place elsewhere (e.g. "Haarlem,
-// Netherlands"). The latter are searched freeform as typed; everything else
-// goes through structured GTA search first, falling back to a freeform
-// search of the original string if that turns up nothing.
+// A location is only treated as a GTA street address if it starts with a
+// house number — every real rating so far follows that pattern. Anything
+// else (a bare place name like "Stockholm", or an explicit non-GTA address
+// like "401 E 57th St, New York, NY") is searched freeform with no Ontario
+// bias, since structured GTA search can otherwise return a false-positive
+// match against an unrelated Canadian street that happens to share the name.
+function isGtaStreetAddress(base) {
+  if (!/^\d/.test(base)) return false;
+  const mentionsGTA = new RegExp(`\\b(${GTA_PLACES})\\b`, 'i').test(base);
+  return !base.includes(',') || mentionsGTA;
+}
+
 async function geocodeLocation(location) {
   const base = location.split(' - ')[0].trim();
-  const looksInternational = base.includes(',') && !new RegExp(`\\b(${GTA_PLACES})\\b`, 'i').test(base);
 
-  if (looksInternational) {
-    return geocodeFreeform(base);
+  if (!isGtaStreetAddress(base)) {
+    let coords = await geocodeFreeform(base);
+    if (!coords) {
+      const ascii = toAsciiApprox(base);
+      if (ascii !== base) {
+        await sleep(1100);
+        coords = await geocodeFreeform(ascii);
+      }
+    }
+    return coords;
   }
 
   let coords = await geocodeStructured(cleanStreet(base));

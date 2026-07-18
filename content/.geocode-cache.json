@@ -7,5 +7,8 @@
   "1103-145 Silver Reign Dr Toronto, ON M9W 3W4 Canada": { "lat": 43.71244, "lng": -79.55685 },
   "505 St Clair Avenue West": { "lat": 43.6829205, "lng": -79.4184926 },
   "7605 Woodbine Avenue #3": { "lat": 43.828958, "lng": -79.3510238 },
-  "656 Spadina Ave": { "lat": 43.6633466, "lng": -79.4025124 }
+  "656 Spadina Ave": { "lat": 43.6633466, "lng": -79.4025124 },
+  "401 E 57th St, New York, NY": { "lat": 40.7584479, "lng": -73.9626027 },
+  "Nørre Voldgade 90, 1358 København": { "lat": 55.683538, "lng": 12.572836 },
+  "Stockholm": { "lat": 59.3251172, "lng": 18.0710935 }
 }

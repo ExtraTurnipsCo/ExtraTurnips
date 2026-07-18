@@ -6,7 +6,7 @@ const { geocodeAll } = require('./geocode');
 const SITE_URL = 'https://extraturnips.com';
 
 function parseFrontmatter(text) {
-  const match = text.match(/^---\n([\s\S]*?)\n---([\s\S]*)$/);
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---([\s\S]*)$/);
   if (!match) return null;
   const data = yaml.load(match[1]);
   data._body = match[2].trim();
@@ -52,6 +52,10 @@ allRatings.forEach(r => {
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
 const posts = loadCollection('content/posts');
+posts.forEach(p => {
+  p.comments = loadCollection(`content/comments/${p.slug}`)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+});
 
 const template = fs.readFileSync('public/index.html', 'utf8');
 const sharedStyle = (template.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
@@ -62,6 +66,92 @@ const permalinkExtraCSS = `
   .permalink-back { display: inline-block; margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; }
   .permalink-back:hover { color: var(--text); }
 `;
+
+function formatCommentDate(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function commentsSectionHTML(p) {
+  const comments = p.comments || [];
+  const commentHTML = c => `
+        <div class="comment">
+          <div class="comment-head"><span class="comment-name">${esc(c.name)}</span><span class="comment-date">${esc(formatCommentDate(c.date))}</span></div>
+          <p class="comment-body">${esc(c._body)}</p>
+        </div>`;
+
+  return `
+      <div class="comments-section">
+        <h2>Comments <span class="comments-count">(${comments.length})</span></h2>
+        <div class="comments-list" id="commentsList">
+          ${comments.map(commentHTML).join('')}
+        </div>
+        <p class="empty-state comments-empty" id="commentsEmpty" style="padding:1.25rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
+        <form class="comment-form" id="commentForm">
+          <div class="form-row">
+            <label>Your Name</label>
+            <input type="text" name="name" required maxlength="80" placeholder="e.g. Alex T." />
+          </div>
+          <div class="form-row">
+            <label>Comment</label>
+            <textarea name="comment" required maxlength="2000" placeholder="Say something..."></textarea>
+          </div>
+          <input type="text" name="botField" class="hp-field" tabindex="-1" autocomplete="off" />
+          <button type="submit" class="form-submit">Post Comment</button>
+        </form>
+      </div>
+      <script>
+        (function () {
+          var form = document.getElementById('commentForm');
+          var list = document.getElementById('commentsList');
+          var empty = document.getElementById('commentsEmpty');
+          var countEl = document.querySelector('.comments-count');
+          var postSlug = ${JSON.stringify(p.slug)};
+          form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var btn = form.querySelector('.form-submit');
+            var fd = new FormData(form);
+            if (fd.get('botField')) return;
+            var name = String(fd.get('name') || '').trim();
+            var comment = String(fd.get('comment') || '').trim();
+            if (!name || !comment) return;
+            btn.disabled = true; btn.textContent = 'Posting...';
+            try {
+              var res = await fetch('/.netlify/functions/comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postSlug: postSlug, name: name, comment: comment })
+              });
+              if (!res.ok) throw new Error('Request failed');
+              var div = document.createElement('div');
+              div.className = 'comment';
+              var head = document.createElement('div');
+              head.className = 'comment-head';
+              var nameEl = document.createElement('span');
+              nameEl.className = 'comment-name';
+              nameEl.textContent = name;
+              var dateEl = document.createElement('span');
+              dateEl.className = 'comment-date';
+              dateEl.textContent = 'Just now';
+              head.appendChild(nameEl); head.appendChild(dateEl);
+              var body = document.createElement('p');
+              body.className = 'comment-body';
+              body.textContent = comment;
+              div.appendChild(head); div.appendChild(body);
+              list.appendChild(div);
+              empty.style.display = 'none';
+              if (countEl) countEl.textContent = '(' + (list.children.length) + ')';
+              form.reset();
+            } catch (err) {
+              alert('Something went wrong, please try again.');
+            } finally {
+              btn.disabled = false; btn.textContent = 'Post Comment';
+            }
+          });
+        })();
+      </script>`;
+}
 
 function pageShell({ title, description, ogImage, url, ogType, bodyHTML }) {
   return `<!DOCTYPE html>
@@ -166,7 +256,8 @@ function postPageHTML(p) {
         <div class="post-meta">${esc(p.date)} &middot; ${esc(p.read)} <span class="tag" style="margin-top:0">${esc(p.tag)}</span></div>
         ${paragraphs.map(par => `<p>${esc(par)}</p>`).join('\n        ')}
         <a class="permalink-back" href="/">&larr; Back to blog</a>
-      </div>`;
+      </div>
+      ${commentsSectionHTML(p)}`;
 
   return pageShell({
     title: `${p.title} — Extra Turnips`,

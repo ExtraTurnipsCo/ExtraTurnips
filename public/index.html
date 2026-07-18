@@ -144,6 +144,20 @@
     .post-full p { font-size: 0.95rem; color: var(--secondary); line-height: 1.85; margin-bottom: 1.2rem; }
     .post-full p:last-child { margin-bottom: 0; }
 
+    /* ── Comments ── */
+    .comments-section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid var(--border); }
+    .comments-section h2 { font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 400; margin-bottom: 1rem; letter-spacing: -0.01em; }
+    .comments-count { font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--muted); font-weight: 300; }
+    .comments-list { display: flex; flex-direction: column; }
+    .comment { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+    .comment:first-child { border-top: 1px solid var(--border); }
+    .comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.35rem; }
+    .comment-name { font-family: 'Lora', serif; font-size: 0.92rem; color: var(--text); }
+    .comment-date { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
+    .comment-body { font-size: 0.88rem; color: var(--secondary); line-height: 1.7; white-space: pre-wrap; }
+    .comment-form { margin-top: 1.75rem; }
+    .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
     /* ── About ── */
     .about-section h2 { font-family: 'Lora', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
     .about-section p { font-size: 0.95rem; color: var(--secondary); line-height: 1.85; margin-bottom: 1.1rem; }
@@ -261,6 +275,23 @@
         <h1 id="postTitle"></h1>
         <div class="post-meta" id="postMeta"></div>
         <div id="postBody"></div>
+        <div class="comments-section">
+          <h2>Comments <span class="comments-count" id="commentsCount">(0)</span></h2>
+          <div class="comments-list" id="commentsList"></div>
+          <p class="empty-state comments-empty" id="commentsEmpty" style="padding:1.25rem 0;">No comments yet. Be the first.</p>
+          <form class="comment-form" id="commentForm" onsubmit="submitComment(event)">
+            <div class="form-row">
+              <label>Your Name</label>
+              <input type="text" name="name" required maxlength="80" placeholder="e.g. Alex T." />
+            </div>
+            <div class="form-row">
+              <label>Comment</label>
+              <textarea name="comment" required maxlength="2000" placeholder="Say something..."></textarea>
+            </div>
+            <input type="text" name="botField" class="hp-field" tabindex="-1" autocomplete="off" />
+            <button type="submit" class="form-submit">Post Comment</button>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -512,11 +543,73 @@
       setTimeout(() => leafletMap.invalidateSize(), 0);
     }
 
+    let currentPostSlug = null;
+
+    function formatCommentDate(iso) {
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escHTML(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function commentHTML(c) {
+      return `
+        <div class="comment">
+          <div class="comment-head"><span class="comment-name">${escHTML(c.name)}</span><span class="comment-date">${escHTML(formatCommentDate(c.date))}</span></div>
+          <p class="comment-body">${escHTML(c._body || c.comment || '')}</p>
+        </div>`;
+    }
+
+    function renderComments(comments) {
+      const list = document.getElementById('commentsList');
+      const empty = document.getElementById('commentsEmpty');
+      const countEl = document.getElementById('commentsCount');
+      list.innerHTML = (comments || []).map(commentHTML).join('');
+      empty.style.display = (comments && comments.length) ? 'none' : 'block';
+      countEl.textContent = `(${(comments || []).length})`;
+    }
+
+    async function submitComment(e) {
+      e.preventDefault();
+      const form = e.target;
+      const btn = form.querySelector('.form-submit');
+      const fd = new FormData(form);
+      if (fd.get('botField')) return;
+      const name = String(fd.get('name') || '').trim();
+      const comment = String(fd.get('comment') || '').trim();
+      if (!name || !comment) return;
+      btn.disabled = true; btn.textContent = 'Posting...';
+      try {
+        const res = await fetch('/.netlify/functions/comment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ postSlug: currentPostSlug, name, comment })
+        });
+        if (!res.ok) throw new Error('Request failed');
+        document.getElementById('commentsEmpty').style.display = 'none';
+        document.getElementById('commentsList').insertAdjacentHTML('beforeend', commentHTML({ name, date: new Date().toISOString(), _body: comment }));
+        const countEl = document.getElementById('commentsCount');
+        countEl.textContent = `(${document.getElementById('commentsList').children.length})`;
+        form.reset();
+      } catch (err) {
+        alert('Something went wrong, please try again.');
+      } finally {
+        btn.disabled = false; btn.textContent = 'Post Comment';
+      }
+    }
+
     function openPost(i) {
       const p = allPosts[i];
+      currentPostSlug = p.slug;
       document.getElementById('postTitle').textContent = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0">${p.tag}</span> <a class="post-permalink" href="/posts/${p.slug}.html" target="_blank" rel="noopener">Permalink &#x2197;</a>`;
       document.getElementById('postBody').innerHTML = p.post || p._body || p.body || '';
+      renderComments(p.comments);
       show('post');
     }
 

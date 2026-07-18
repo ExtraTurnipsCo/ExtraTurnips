@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const { geocodeAll } = require('./geocode');
 
 const SITE_URL = 'https://extraturnips.com';
 
@@ -40,7 +41,14 @@ function truncate(s, n) {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
 }
 
+async function build() {
+
 const allRatings = loadCollection('content/ratings');
+const geoCache = await geocodeAll(allRatings);
+allRatings.forEach(r => {
+  const coords = r.location ? geoCache[r.location] : null;
+  if (coords) { r.lat = coords.lat; r.lng = coords.lng; }
+});
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
 const posts = loadCollection('content/posts');
@@ -199,3 +207,7 @@ fs.writeFileSync('public/sitemap.xml', sitemap);
 console.log(`Built with ${adminRatings.length} ratings, ${communityRatings.length} community, ${posts.length} posts`);
 console.log(`Generated ${allRatings.length} rating permalinks, ${posts.length} post permalinks`);
 console.log(`Generated sitemap.xml with ${sitemapUrls.length} URLs`);
+
+}
+
+build();

@@ -19,6 +19,7 @@
   <meta name="twitter:image" content="https://extraturnips.com/ExtraTurnipsLogo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -110,6 +111,17 @@
 
     .empty-state { padding: 3rem 0; font-size: 0.88rem; color: var(--muted); font-style: italic; }
 
+    /* ── Map ── */
+    #mapContainer { height: 70vh; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); margin-top: 1.5rem; background: var(--tag-bg); }
+    .leaflet-popup-content-wrapper { border-radius: 4px; }
+    .leaflet-popup-content { font-family: 'DM Sans', sans-serif; margin: 0.85rem 1rem; }
+    .map-popup-name { font-family: 'Lora', serif; font-size: 0.98rem; color: var(--text); margin-bottom: 0.2rem; }
+    .map-popup-meta { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .map-popup-score { font-family: 'Lora', serif; font-size: 1.05rem; color: var(--text); margin-bottom: 0.5rem; }
+    .map-popup-denom { font-size: 0.62rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+    .map-popup-link { font-size: 0.7rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+    .map-popup-link:hover { color: var(--text); border-color: var(--text); }
+
     /* ── Blog ── */
     .blog-header { margin-bottom: 2.5rem; }
     .blog-header h1 { font-family: 'Lora', serif; font-size: 1.85rem; font-weight: 400; line-height: 1.3; margin-bottom: 0.65rem; letter-spacing: -0.02em; }
@@ -186,6 +198,7 @@
       </span>
       <ul class="nav-links">
         <li><a id="nav-ratings" onclick="show('ratings')" class="active">Ratings</a></li>
+        <li><a id="nav-map" onclick="show('map')">Map</a></li>
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
         <li><a id="nav-about" onclick="show('about')">About</a></li>
       </ul>
@@ -218,6 +231,16 @@
         <div id="communityCards"></div>
         <p class="empty-state" id="communityEmptyState" style="display:none;">No community ratings yet. Be the first.</p>
       </div>
+    </div>
+
+    <!-- MAP -->
+    <div id="map" class="page">
+      <div class="blog-header">
+        <h1>The Map.</h1>
+        <p>Every place we've rated, plotted where you can find it.</p>
+      </div>
+      <div id="mapContainer"></div>
+      <p class="empty-state" id="mapEmptyState" style="display:none;">No locations to show yet.</p>
     </div>
 
     <!-- BLOG -->
@@ -336,6 +359,7 @@
   </form>
 
   <script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script>
     // ── Data injected at build time ──
     const communityRatings = __COMMUNITY_DATA__;
@@ -436,6 +460,58 @@
       observeCards(list);
     }
 
+    // ── Map ──
+    let leafletMap = null;
+    let mapMarkers = [];
+
+    function renderMap() {
+      const located = [...allRatings, ...communityRatings].filter(r => r.lat != null && r.lng != null);
+      const container = document.getElementById('mapContainer');
+      const emptyState = document.getElementById('mapEmptyState');
+
+      if (!located.length) {
+        container.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+      container.style.display = 'block';
+      emptyState.style.display = 'none';
+
+      if (!leafletMap) {
+        leafletMap = L.map('mapContainer');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+          maxZoom: 19
+        }).addTo(leafletMap);
+      }
+
+      mapMarkers.forEach(m => leafletMap.removeLayer(m));
+      mapMarkers = located.map(r => {
+        const score = Math.round(total(r) * 10) / 10;
+        const marker = L.marker([r.lat, r.lng]).addTo(leafletMap);
+        marker.bindPopup(`
+          <div class="map-popup">
+            <div class="map-popup-name">${r.name}</div>
+            <div class="map-popup-meta">${r.location}</div>
+            <div class="map-popup-score">${score}<span class="map-popup-denom">/100</span></div>
+            <a class="map-popup-link" href="/ratings/${r.slug}.html" target="_blank" rel="noopener">View rating &#x2197;</a>
+          </div>`);
+        return marker;
+      });
+
+      // Fit the initial view to the GTA cluster rather than every pin — a
+      // single far-off rating (e.g. one in another country) would otherwise
+      // force the map to zoom out to world scale, collapsing all the local
+      // pins on top of each other. Outliers still get a marker; they're just
+      // reachable by panning/zooming out instead of being in the default view.
+      const GTA_BOUNDS = L.latLngBounds([43.0, -80.5], [44.5, -78.5]);
+      const local = located.filter(r => GTA_BOUNDS.contains([r.lat, r.lng]));
+      const boundsSource = local.length ? local : located;
+      const bounds = L.latLngBounds(boundsSource.map(r => [r.lat, r.lng]));
+      leafletMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+      setTimeout(() => leafletMap.invalidateSize(), 0);
+    }
+
     function openPost(i) {
       const p = allPosts[i];
       document.getElementById('postTitle').textContent = p.title;
@@ -469,11 +545,12 @@
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       lenis.scrollTo(0, { immediate: true });
-      ['ratings','blog','about'].forEach(n => {
+      ['ratings','map','blog','about'].forEach(n => {
         const el = document.getElementById('nav-' + n);
         if (el) el.classList.toggle('active', n === id);
       });
       if (id === 'ratings') { renderRatings(); renderCommunity(); }
+      if (id === 'map') renderMap();
       if (id === 'blog') renderBlog();
     }
 

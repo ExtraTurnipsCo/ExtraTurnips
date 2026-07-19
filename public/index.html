@@ -101,6 +101,8 @@
     .tag { display: inline-block; font-size: 0.67rem; letter-spacing: 0.05em; text-transform: uppercase; background: var(--tag-bg); color: var(--muted); padding: 3px 9px; border-radius: 20px; }
     .card-permalink { display: inline-block; margin-top: 0.85rem; font-size: 0.68rem; letter-spacing: 0.05em; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .card-permalink:hover { color: var(--text); border-color: var(--text); }
+    .card-readmore { white-space: nowrap; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--muted); }
+    .card-readmore:hover { border-color: var(--text); }
     .post-permalink { font-size: 0.75rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .post-permalink:hover { color: var(--text); border-color: var(--text); }
 
@@ -400,6 +402,28 @@
       return total(r);
     }
 
+    // Condense a full review down to a card-sized summary: the opening
+    // sentence(s) that fit within maxLen, so the drop-down stays skimmable and
+    // the full write-up lives on the permalink page. Returns whether it was
+    // shortened so the card can decide to show a "Read full review" link.
+    function summarize(text, maxLen = 200) {
+      const clean = String(text || '').replace(/\s+/g, ' ').trim();
+      if (clean.length <= maxLen) return { text: clean, truncated: false };
+      // Prefer the last full sentence that fits (a .!? followed by whitespace).
+      let boundary = -1;
+      const re = /[.!?](\s)/g;
+      let m;
+      while ((m = re.exec(clean)) !== null) {
+        if (m.index + 1 <= maxLen) boundary = m.index + 1;
+        else break;
+      }
+      if (boundary >= 40) return { text: clean.slice(0, boundary).trim(), truncated: true };
+      // First sentence is longer than maxLen — fall back to a word-boundary cut.
+      const slice = clean.slice(0, maxLen);
+      const lastSpace = slice.lastIndexOf(' ');
+      return { text: clean.slice(0, lastSpace > 0 ? lastSpace : maxLen).trimEnd() + '…', truncated: true };
+    }
+
     function ratingCardHTML(r, idx) {
       const score = Math.round(total(r) * 10) / 10;
       const isTop = score >= 80;
@@ -409,6 +433,10 @@
       const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${src}" alt="${r.name}" loading="lazy" />`).join('')}</div>` : '';
       const submitterHTML = r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : '';
       const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
+      const summary = summarize(r.note);
+      const noteHTML = summary.truncated
+        ? `${summary.text} <a class="card-readmore" href="/ratings/${r.slug}.html" onclick="event.stopPropagation()">Read full review &rarr;</a>`
+        : summary.text;
       return `
         <div class="rating-card" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
           <div class="card-header">
@@ -425,7 +453,7 @@
             <div class="card-body-inner">
               <div class="card-detail">
                 ${submitterHTML}
-                <p class="card-note">${r.note}</p>
+                <p class="card-note">${noteHTML}</p>
                 <div class="card-subscores">
                   <div class="subscore-row">
                     <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>

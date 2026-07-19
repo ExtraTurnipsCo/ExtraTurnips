@@ -16,6 +16,10 @@ note: >-
   was this order took place after Austin and I had some drinks. We tried to stay
   professional and we are happy to do a re-review if the community calls this
   spot into question.
+summary:
+  - "North America's biggest chain has perfected mediocre — nothing bad, nothing special"
+  - "$14.55 filling plate, quick service, good seating and sauces"
+  - "Caveat: reviewed after a few drinks, so happy to re-review on request"
 taste: 36
 value: 18
 experience: 20

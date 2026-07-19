@@ -103,6 +103,11 @@
     .card-permalink:hover { color: var(--text); border-color: var(--text); }
     .card-readmore { white-space: nowrap; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--muted); }
     .card-readmore:hover { border-color: var(--text); }
+    .card-summary { list-style: none; margin: 0 0 0.9rem; padding: 0; }
+    .card-summary li { position: relative; padding-left: 1.05rem; font-size: 0.88rem; color: var(--secondary); line-height: 1.65; margin-bottom: 0.5rem; }
+    .card-summary li:last-child { margin-bottom: 0; }
+    .card-summary li::before { content: ''; position: absolute; left: 0; top: 0.6em; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+    .card-summary-more { display: inline-block; margin-bottom: 1.1rem; }
     .post-permalink { font-size: 0.75rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .post-permalink:hover { color: var(--text); border-color: var(--text); }
 
@@ -437,10 +442,21 @@
       const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${src}" alt="${r.name}" loading="lazy" />`).join('')}</div>` : '';
       const submitterHTML = r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : '';
       const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
-      const summary = summarize(r.note);
-      const noteHTML = summary.truncated
-        ? `${summary.text} <a class="card-readmore" href="/ratings/${r.slug}.html" onclick="event.stopPropagation()">Read full review &rarr;</a>`
-        : summary.text;
+      const points = Array.isArray(r.summary) ? r.summary.filter(Boolean) : [];
+      let noteHTML;
+      if (points.length) {
+        // Authored 3-point summary: skimmable bullets, with the full write-up
+        // one click away on the permalink page.
+        noteHTML = `<ul class="card-summary">${points.map(p => `<li>${p}</li>`).join('')}</ul>`
+          + `<a class="card-readmore card-summary-more" href="/ratings/${r.slug}.html" onclick="event.stopPropagation()">Read full review &rarr;</a>`;
+      } else {
+        // Fallback for ratings without an authored summary (e.g. community
+        // submissions): condense the opening sentences of the note.
+        const summary = summarize(r.note);
+        noteHTML = summary.truncated
+          ? `${summary.text} <a class="card-readmore" href="/ratings/${r.slug}.html" onclick="event.stopPropagation()">Read full review &rarr;</a>`
+          : summary.text;
+      }
       return `
         <div class="rating-card" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
           <div class="card-header">
@@ -457,7 +473,7 @@
             <div class="card-body-inner">
               <div class="card-detail">
                 ${submitterHTML}
-                <p class="card-note">${noteHTML}</p>
+                <div class="card-note">${noteHTML}</div>
                 <div class="card-subscores">
                   <div class="subscore-row">
                     <span class="subscore-lbl">Taste <span class="subscore-lbl-max">/50</span></span>

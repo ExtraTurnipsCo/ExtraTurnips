@@ -12,6 +12,10 @@ note: >-
   Asian dude. When in Copenhagen avoid this place. Oskar found his decent but he
   got different meat than I did. I’ll treat experience and value separately from
   taste 
+summary:
+  - "Mystery meat (probably lamb), overcooked and dry"
+  - "Bad bread, bare veg, mid sauce — the last bite went in the trash"
+  - "Lesson learned: don't order shawarma from a place that also sells pizza"
 taste: 17
 value: 17
 experience: 17

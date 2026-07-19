@@ -9,6 +9,10 @@ note: 15$ for a hearty lunch plate that it wouldn't be a crime to save for
   golf. Complementary waters so long as we left a review sealed the deal for us.
 tags:
   - Plate
+summary:
+  - "$15 hearty lunch plate, big enough to save half for later"
+  - "Quick service, solid toppings selection, and generous with extras"
+  - "Complimentary waters for leaving a review sealed the deal"
 taste: 38
 value: 19
 experience: 22

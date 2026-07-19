@@ -2,6 +2,7 @@
   "name": "extraturnips",
   "version": "1.0.0",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.112.3",
     "js-yaml": "^4.1.0"
   }
 }

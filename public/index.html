@@ -275,23 +275,7 @@
         <h1 id="postTitle"></h1>
         <div class="post-meta" id="postMeta"></div>
         <div id="postBody"></div>
-        <div class="comments-section">
-          <h2>Comments <span class="comments-count" id="commentsCount">(0)</span></h2>
-          <div class="comments-list" id="commentsList"></div>
-          <p class="empty-state comments-empty" id="commentsEmpty" style="padding:1.25rem 0;">No comments yet. Be the first.</p>
-          <form class="comment-form" id="commentForm" onsubmit="submitComment(event)">
-            <div class="form-row">
-              <label>Your Name</label>
-              <input type="text" name="name" required maxlength="80" placeholder="e.g. Alex T." />
-            </div>
-            <div class="form-row">
-              <label>Comment</label>
-              <textarea name="comment" required maxlength="2000" placeholder="Say something..."></textarea>
-            </div>
-            <input type="text" name="botField" class="hp-field" tabindex="-1" autocomplete="off" />
-            <button type="submit" class="form-submit">Post Comment</button>
-          </form>
-        </div>
+        <div id="postComments"></div>
       </div>
     </div>
 
@@ -462,6 +446,7 @@
                 ${tagsHTML}
                 ${photoHTML}
                 <a class="card-permalink" href="/ratings/${r.slug}.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Permalink &#x2197;</a>
+                ${commentsSectionHTML(r)}
               </div>
             </div>
           </div>
@@ -543,8 +528,6 @@
       setTimeout(() => leafletMap.invalidateSize(), 0);
     }
 
-    let currentPostSlug = null;
-
     function formatCommentDate(iso) {
       const d = new Date(iso);
       if (isNaN(d)) return '';
@@ -565,18 +548,37 @@
         </div>`;
     }
 
-    function renderComments(comments) {
-      const list = document.getElementById('commentsList');
-      const empty = document.getElementById('commentsEmpty');
-      const countEl = document.getElementById('commentsCount');
-      list.innerHTML = (comments || []).map(commentHTML).join('');
-      empty.style.display = (comments && comments.length) ? 'none' : 'block';
-      countEl.textContent = `(${(comments || []).length})`;
+    // Renders a self-contained comments section. Multiple instances can be on
+    // the page at once (one per rating card), so elements are targeted via
+    // data attributes scoped to the nearest .comments-section, not global ids.
+    function commentsSectionHTML(item) {
+      const comments = item.comments || [];
+      return `
+        <div class="comments-section">
+          <h2>Comments <span class="comments-count" data-comments-count>(${comments.length})</span></h2>
+          <div class="comments-list" data-comments-list>${comments.map(commentHTML).join('')}</div>
+          <p class="empty-state comments-empty" data-comments-empty style="padding:1.25rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
+          <form class="comment-form" data-comment-form data-slug="${escHTML(item.slug)}">
+            <div class="form-row">
+              <label>Your Name</label>
+              <input type="text" name="name" required maxlength="80" placeholder="e.g. Alex T." />
+            </div>
+            <div class="form-row">
+              <label>Comment</label>
+              <textarea name="comment" required maxlength="2000" placeholder="Say something..."></textarea>
+            </div>
+            <input type="text" name="botField" class="hp-field" tabindex="-1" autocomplete="off" />
+            <button type="submit" class="form-submit">Post Comment</button>
+          </form>
+        </div>`;
     }
 
-    async function submitComment(e) {
-      e.preventDefault();
+    async function handleCommentSubmit(e) {
       const form = e.target;
+      if (!form.matches('[data-comment-form]')) return;
+      e.preventDefault();
+      const section = form.closest('.comments-section');
+      const slug = form.dataset.slug;
       const btn = form.querySelector('.form-submit');
       const fd = new FormData(form);
       if (fd.get('botField')) return;
@@ -588,13 +590,15 @@
         const res = await fetch('/.netlify/functions/comment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ postSlug: currentPostSlug, name, comment })
+          body: JSON.stringify({ postSlug: slug, name, comment })
         });
         if (!res.ok) throw new Error('Request failed');
-        document.getElementById('commentsEmpty').style.display = 'none';
-        document.getElementById('commentsList').insertAdjacentHTML('beforeend', commentHTML({ name, date: new Date().toISOString(), _body: comment }));
-        const countEl = document.getElementById('commentsCount');
-        countEl.textContent = `(${document.getElementById('commentsList').children.length})`;
+        const list = section.querySelector('[data-comments-list]');
+        const empty = section.querySelector('[data-comments-empty]');
+        const countEl = section.querySelector('[data-comments-count]');
+        list.insertAdjacentHTML('beforeend', commentHTML({ name, date: new Date().toISOString(), _body: comment }));
+        empty.style.display = 'none';
+        countEl.textContent = `(${list.children.length})`;
         form.reset();
       } catch (err) {
         alert('Something went wrong, please try again.');
@@ -602,14 +606,14 @@
         btn.disabled = false; btn.textContent = 'Post Comment';
       }
     }
+    document.addEventListener('submit', handleCommentSubmit);
 
     function openPost(i) {
       const p = allPosts[i];
-      currentPostSlug = p.slug;
       document.getElementById('postTitle').textContent = p.title;
       document.getElementById('postMeta').innerHTML = `${p.date} &middot; ${p.read} <span class="tag" style="margin-top:0">${p.tag}</span> <a class="post-permalink" href="/posts/${p.slug}.html" target="_blank" rel="noopener">Permalink &#x2197;</a>`;
       document.getElementById('postBody').innerHTML = p.post || p._body || p.body || '';
-      renderComments(p.comments);
+      document.getElementById('postComments').innerHTML = commentsSectionHTML(p);
       show('post');
     }
 

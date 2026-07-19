@@ -48,6 +48,8 @@ const geoCache = await geocodeAll(allRatings);
 allRatings.forEach(r => {
   const coords = r.location ? geoCache[r.location] : null;
   if (coords) { r.lat = coords.lat; r.lng = coords.lng; }
+  r.comments = loadCollection(`content/comments/${r.slug}`)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
@@ -231,7 +233,8 @@ function ratingPageHTML(r) {
           ${photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="${esc(r.name)}" loading="lazy" />`).join('')}</div>` : ''}
         </div>
       </div>
-      <a class="permalink-back" href="/">&larr; All ratings</a>`;
+      <a class="permalink-back" href="/">&larr; All ratings</a>
+      ${commentsSectionHTML(r)}`;
 
   return pageShell({
     title: `${r.name} — Extra Turnips`,

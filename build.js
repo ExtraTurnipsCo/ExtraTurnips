@@ -89,7 +89,7 @@ function commentsSectionHTML(p) {
         <div class="comments-list" id="commentsList">
           ${comments.map(commentHTML).join('')}
         </div>
-        <p class="empty-state comments-empty" id="commentsEmpty" style="padding:1.25rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
+        <p class="empty-state comments-empty" id="commentsEmpty" style="padding:0.6rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
         <form class="comment-form" id="commentForm">
           <div class="form-row">
             <label>Your Name</label>

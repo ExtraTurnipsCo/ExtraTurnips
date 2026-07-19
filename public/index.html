@@ -147,17 +147,21 @@
     .post-full p:last-child { margin-bottom: 0; }
 
     /* ── Comments ── */
-    .comments-section { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid var(--border); }
-    .comments-section h2 { font-family: 'Lora', serif; font-size: 1.2rem; font-weight: 400; margin-bottom: 1rem; letter-spacing: -0.01em; }
-    .comments-count { font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--muted); font-weight: 300; }
+    .comments-section { margin-top: 1.6rem; padding-top: 1.1rem; border-top: 1px solid var(--border); }
+    .comments-section h2 { font-family: 'Lora', serif; font-size: 1.05rem; font-weight: 400; margin-bottom: 0.5rem; letter-spacing: -0.01em; }
+    .comments-count { font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: var(--muted); font-weight: 300; }
     .comments-list { display: flex; flex-direction: column; }
-    .comment { padding: 1rem 0; border-bottom: 1px solid var(--border); }
+    .comment { padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
     .comment:first-child { border-top: 1px solid var(--border); }
-    .comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.35rem; }
-    .comment-name { font-family: 'Lora', serif; font-size: 0.92rem; color: var(--text); }
+    .comment-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.2rem; }
+    .comment-name { font-family: 'Lora', serif; font-size: 0.9rem; color: var(--text); }
     .comment-date { font-size: 0.7rem; color: var(--muted); flex-shrink: 0; }
-    .comment-body { font-size: 0.88rem; color: var(--secondary); line-height: 1.7; white-space: pre-wrap; }
-    .comment-form { margin-top: 1.75rem; }
+    .comment-body { font-size: 0.86rem; color: var(--secondary); line-height: 1.6; white-space: pre-wrap; }
+    /* Comment form is tighter than the rating-submission modal, so scope the overrides here. */
+    .comment-form { margin-top: 1rem; }
+    .comment-form .form-row { margin-bottom: 0.6rem; }
+    .comment-form .form-row textarea { min-height: 58px; }
+    .comment-form .form-submit { margin-top: 0.6rem; width: auto; padding: 0.55rem 1.4rem; }
     .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
     /* ── About ── */
@@ -585,7 +589,7 @@
         <div class="comments-section">
           <h2>Comments <span class="comments-count" data-comments-count>(${comments.length})</span></h2>
           <div class="comments-list" data-comments-list>${comments.map(commentHTML).join('')}</div>
-          <p class="empty-state comments-empty" data-comments-empty style="padding:1.25rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
+          <p class="empty-state comments-empty" data-comments-empty style="padding:0.6rem 0;${comments.length ? 'display:none;' : ''}">No comments yet. Be the first.</p>
           <form class="comment-form" data-comment-form data-slug="${escHTML(item.slug)}">
             <div class="form-row">
               <label>Your Name</label>

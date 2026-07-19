@@ -17,6 +17,10 @@ note: >-
   have been a fluke but had I been eating in the store I would've made an
   absolute mess. Luckily I was outside and the Spadina Ave pigeons were able to
   clean up what I couldn't.
+summary:
+  - "Unplanned Annex stop; flavorful sauces with just-right heat were the highlight"
+  - "Chicken underwhelmed, too much lettuce, and it fell apart early"
+  - "Still, at $11 it's worth a return in a pinch"
 taste: 34
 value: 20
 experience: 19

@@ -16,6 +16,10 @@ note: This place is elite. Knocks it out of the park on taste, you will struggle
 tags:
   - Wrap
   - Guest:Eden
+summary:
+  - "Elite, expertly crafted Saj-style wraps — among the GTA's best for taste"
+  - "Toppings only good-not-great and sauces too mayo-heavy and confusing"
+  - "Huge portion easily splits into two meals, keeping value high"
 taste: 47
 value: 22.5
 experience: 20.5

@@ -2,8 +2,17 @@ const fs = require('fs');
 const path = require('path');
 const yaml = require('js-yaml');
 const { geocodeAll } = require('./geocode');
+const { summarizeAll } = require('./summarize');
 
 const SITE_URL = 'https://extraturnips.com';
+
+// Cloudflare Web Analytics beacon token (Web Analytics > your site > "token"
+// in the JS snippet). While it's the placeholder below, no beacon is emitted.
+// NOTE: the same token is also hardcoded in public/index.html for the SPA shell.
+const CF_ANALYTICS_TOKEN = 'PASTE_CLOUDFLARE_TOKEN_HERE';
+const cfBeacon = CF_ANALYTICS_TOKEN && CF_ANALYTICS_TOKEN !== 'PASTE_CLOUDFLARE_TOKEN_HERE'
+  ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${CF_ANALYTICS_TOKEN}"}'></script>`
+  : '';
 
 function parseFrontmatter(text) {
   const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---([\s\S]*)$/);
@@ -51,6 +60,7 @@ allRatings.forEach(r => {
   r.comments = loadCollection(`content/comments/${r.slug}`)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 });
+await summarizeAll(allRatings);
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
 const posts = loadCollection('content/posts');
@@ -185,6 +195,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML }) {
       ${bodyHTML}
     </div>
   </div>
+  ${cfBeacon}
 </body>
 </html>`;
 }

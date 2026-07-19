@@ -12,6 +12,10 @@ note: Toppings were the all-stars of this plate so expect lots of different
   took full advantage of.
 tags:
   - Plate
+summary:
+  - "Standout toppings — crisp purple cabbage, hot peppers, pickled turnips"
+  - "Chicken did its job but nothing more, and we wanted more turnips"
+  - "Unique lentil-rice base and great bar seating onto Bloor Street"
 taste: 40.5
 value: 16.75
 experience: 21.75

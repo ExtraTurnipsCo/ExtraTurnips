@@ -7,9 +7,13 @@ const { summarizeAll } = require('./summarize');
 const SITE_URL = 'https://extraturnips.com';
 
 // Cloudflare Web Analytics beacon token (Web Analytics > your site > "token"
-// in the JS snippet). While it's the placeholder below, no beacon is emitted.
-// NOTE: the same token is also hardcoded in public/index.html for the SPA shell.
-const CF_ANALYTICS_TOKEN = 'PASTE_CLOUDFLARE_TOKEN_HERE';
+// in the JS snippet). Set it as a Netlify environment variable named
+// CF_ANALYTICS_TOKEN (Site settings > Environment variables) so it isn't
+// committed; the constant below is only a local fallback. While the token is
+// unset/placeholder, no beacon is emitted. The beacon is injected into the SPA
+// shell (public/index.html, via the __CF_BEACON__ placeholder) and into every
+// generated permalink page (via pageShell), so all pages are counted.
+const CF_ANALYTICS_TOKEN = process.env.CF_ANALYTICS_TOKEN || 'PASTE_CLOUDFLARE_TOKEN_HERE';
 const cfBeacon = CF_ANALYTICS_TOKEN && CF_ANALYTICS_TOKEN !== 'PASTE_CLOUDFLARE_TOKEN_HERE'
   ? `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${CF_ANALYTICS_TOKEN}"}'></script>`
   : '';
@@ -286,7 +290,8 @@ function postPageHTML(p) {
 const output = template
   .replace('__RATINGS_DATA__', JSON.stringify(adminRatings))
   .replace('__COMMUNITY_DATA__', JSON.stringify(communityRatings))
-  .replace('__POSTS_DATA__', JSON.stringify(posts));
+  .replace('__POSTS_DATA__', JSON.stringify(posts))
+  .replace('__CF_BEACON__', cfBeacon);
 
 fs.writeFileSync('public/index.html', output);
 

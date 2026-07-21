@@ -54,6 +54,150 @@ function truncate(s, n) {
   return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
 }
 
+// Best-effort conversion of our human dates ("May 2026", "2026-05-01") to an
+// ISO 8601 date for schema.org datePublished and sitemap <lastmod>. Returns
+// null when unparseable so callers can omit the field rather than emit garbage.
+function isoDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // "May 2026" -> prepend a day so it parses to the first of the month.
+  const d = new Date(/^[A-Za-z]+\s+\d{4}$/.test(s) ? '1 ' + s : s);
+  return isNaN(d) ? null : d.toISOString().slice(0, 10);
+}
+
+// ISO date for a rating/post, falling back to the epoch-ms timestamp many slugs
+// end with (e.g. "...-1782728799451") when the human date is too vague to parse
+// (a bare "June" with no year).
+function entryDate(x) {
+  const iso = isoDate(x.date);
+  if (iso) return iso;
+  const m = String(x.slug || '').match(/(\d{13})$/);
+  return m ? new Date(Number(m[1])).toISOString().slice(0, 10) : null;
+}
+
+// Serialize a schema.org object into a JSON-LD script tag. Escaping "<" keeps
+// review text or titles containing "</script>" from breaking out of the tag.
+function jsonLdScript(obj) {
+  return `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
+}
+
+// A Review of a Restaurant. Restaurant is a LocalBusiness subtype, so the
+// reviewRating makes the page eligible for star rich results. Scores are /100,
+// so bestRating/worstRating pin the scale (Google assumes /5 otherwise).
+function ratingJsonLd(r, { url, score, photos }) {
+  const restaurant = { '@type': 'Restaurant', name: r.name, servesCuisine: 'Shawarma' };
+  if (r.location) {
+    restaurant.address = {
+      '@type': 'PostalAddress',
+      streetAddress: r.location,
+      addressLocality: 'Toronto',
+      addressRegion: 'ON',
+      addressCountry: 'CA'
+    };
+  }
+  if (r.lat != null && r.lng != null) {
+    restaurant.geo = { '@type': 'GeoCoordinates', latitude: r.lat, longitude: r.lng };
+  }
+  if (photos.length) restaurant.image = photos;
+
+  const review = {
+    '@context': 'https://schema.org',
+    '@type': 'Review',
+    name: `${r.name} — Extra Turnips review`,
+    url,
+    itemReviewed: restaurant,
+    reviewRating: { '@type': 'Rating', ratingValue: score, bestRating: 100, worstRating: 0 },
+    author: r.submitter
+      ? { '@type': 'Person', name: r.submitter }
+      : { '@type': 'Organization', name: 'Extra Turnips' },
+    publisher: { '@type': 'Organization', name: 'Extra Turnips' },
+    reviewBody: r.note
+  };
+  const iso = entryDate(r);
+  if (iso) review.datePublished = iso;
+  return jsonLdScript(review);
+}
+
+function postJsonLd(p, { url, ogImage }) {
+  const data = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: p.title,
+    description: truncate(p.preamble, 180),
+    image: ogImage,
+    url,
+    mainEntityOfPage: url,
+    author: { '@type': 'Organization', name: 'Extra Turnips' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Extra Turnips',
+      logo: { '@type': 'ImageObject', url: `${SITE_URL}/ExtraTurnipsLogo.png` }
+    }
+  };
+  const iso = entryDate(p);
+  if (iso) data.datePublished = iso;
+  return jsonLdScript(data);
+}
+
+function homeJsonLd() {
+  return jsonLdScript({
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebSite',
+        name: 'Extra Turnips',
+        url: `${SITE_URL}/`,
+        description: 'Reviews of the best authentic shawarma spots across Toronto.'
+      },
+      {
+        '@type': 'Organization',
+        name: 'Extra Turnips',
+        url: `${SITE_URL}/`,
+        logo: `${SITE_URL}/ExtraTurnipsLogo.png`,
+        sameAs: ['https://www.instagram.com/ExtraTurnips']
+      }
+    ]
+  });
+}
+
+// Server-rendered, static version of a homepage rating card. The SPA overwrites
+// #ratingCards / #communityCards on load, so this exists purely so crawlers (and
+// no-JS visitors) see real content and real links to every permalink instead of
+// an empty shell. Keep it interactivity-free: no comment forms, no duplicate IDs.
+function homeCardHTML(r) {
+  const score = Math.round(total(r) * 10) / 10;
+  const isTop = score >= 80;
+  const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
+  const points = Array.isArray(r.summary) ? r.summary.filter(Boolean) : [];
+  const noteHTML = points.length
+    ? `<ul class="card-summary">${points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`
+    : `<p>${esc(truncate(r.note, 220))}</p>`;
+  const tags = Array.isArray(r.tags) ? r.tags : [];
+  const tagsHTML = tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : '';
+  const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
+  const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : '';
+  return `
+        <div class="rating-card">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-name"><a href="/ratings/${r.slug}.html" style="color:inherit;text-decoration:none;">${esc(r.name)}</a></div>
+              <div class="card-meta">${esc(r.location)} &middot; ${esc(r.date)}${typeLabel ? ' &middot; ' + esc(typeLabel) : ''}</div>
+            </div>
+            <div class="card-header-right">
+              <span class="card-score${isTop ? ' top' : ''}">${score} <span class="card-denom">/100</span></span>
+            </div>
+          </div>
+          <div class="card-detail" style="padding-bottom:1rem;">
+            ${r.submitter ? `<div class="community-submitter">Submitted by ${esc(r.submitter)}</div>` : ''}
+            <div class="card-note">${noteHTML}</div>
+            ${tagsHTML}
+            ${photoHTML}
+            <a class="card-permalink" href="/ratings/${r.slug}.html">Read full review &rarr;</a>
+          </div>
+        </div>`;
+}
+
 async function build() {
 
 const allRatings = loadCollection('content/ratings');
@@ -169,7 +313,7 @@ function commentsSectionHTML(p) {
       </script>`;
 }
 
-function pageShell({ title, description, ogImage, url, ogType, bodyHTML }) {
+function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -177,6 +321,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML }) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}" />
+  ${jsonLd || ''}
   <link rel="canonical" href="${url}" />
   <meta property="og:type" content="${ogType}" />
   <meta property="og:title" content="${esc(title)}" />
@@ -245,7 +390,7 @@ function ratingPageHTML(r) {
             </div>
           </div>
           ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
-          ${photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="${esc(r.name)}" loading="lazy" />`).join('')}</div>` : ''}
+          ${photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : ''}
         </div>
       </div>
       <a class="permalink-back" href="/">&larr; All ratings</a>
@@ -257,7 +402,8 @@ function ratingPageHTML(r) {
     ogImage,
     url,
     ogType: 'article',
-    bodyHTML
+    bodyHTML,
+    jsonLd: ratingJsonLd(r, { url, score, photos })
   });
 }
 
@@ -283,15 +429,27 @@ function postPageHTML(p) {
     ogImage,
     url,
     ogType: 'article',
-    bodyHTML
+    bodyHTML,
+    jsonLd: postJsonLd(p, { url, ogImage })
   });
 }
 
+// Server-rendered card lists so the homepage isn't an empty shell to crawlers.
+// The SPA replaces these containers' innerHTML on load; sort here to match the
+// default client sort (by total score, descending).
+const byScore = (a, b) => total(b) - total(a);
+const ssrRatings = [...adminRatings].sort(byScore).map(homeCardHTML).join('');
+const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
+
+// Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
 const output = template
-  .replace('__RATINGS_DATA__', JSON.stringify(adminRatings))
-  .replace('__COMMUNITY_DATA__', JSON.stringify(communityRatings))
-  .replace('__POSTS_DATA__', JSON.stringify(posts))
-  .replace('__CF_BEACON__', cfBeacon);
+  .replace('__RATINGS_DATA__', () => JSON.stringify(adminRatings))
+  .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
+  .replace('__POSTS_DATA__', () => JSON.stringify(posts))
+  .replace('__CF_BEACON__', () => cfBeacon)
+  .replace('<div id="ratingCards"></div>', () => `<div id="ratingCards">${ssrRatings}</div>`)
+  .replace('<div id="communityCards"></div>', () => `<div id="communityCards">${ssrCommunity}</div>`)
+  .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
 
 fs.writeFileSync('public/index.html', output);
 
@@ -302,14 +460,21 @@ for (const dir of ['public/ratings', 'public/posts']) {
 allRatings.forEach(r => fs.writeFileSync(path.join('public/ratings', `${r.slug}.html`), ratingPageHTML(r)));
 posts.forEach(p => fs.writeFileSync(path.join('public/posts', `${p.slug}.html`), postPageHTML(p)));
 
+const today = new Date().toISOString().slice(0, 10);
+// Homepage changes whenever any rating/post does, so stamp it with the newest.
+const newestDate = [...allRatings, ...posts]
+  .map(x => entryDate(x))
+  .filter(Boolean)
+  .sort()
+  .pop() || today;
 const sitemapUrls = [
-  SITE_URL + '/',
-  ...allRatings.map(r => `${SITE_URL}/ratings/${r.slug}.html`),
-  ...posts.map(p => `${SITE_URL}/posts/${p.slug}.html`)
+  { loc: SITE_URL + '/', lastmod: newestDate },
+  ...allRatings.map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
+  ...posts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemapUrls.map(u => `  <url><loc>${esc(u)}</loc></url>`).join('\n')}
+${sitemapUrls.map(u => `  <url><loc>${esc(u.loc)}</loc>${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}</url>`).join('\n')}
 </urlset>
 `;
 fs.writeFileSync('public/sitemap.xml', sitemap);

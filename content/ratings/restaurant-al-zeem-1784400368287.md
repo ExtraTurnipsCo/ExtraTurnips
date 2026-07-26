@@ -1,5 +1,5 @@
 ---
-name: 'Restaurant Al Zeem '
+name: Restaurant Al Zeem
 location: Bayerstraße 15, 80335 München
 date: July 2026
 type: chicken

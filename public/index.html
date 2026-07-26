@@ -116,6 +116,29 @@
     .photo-strip::-webkit-scrollbar { display: none; }
     .photo-strip img { scroll-snap-align: start; flex-shrink: 0; width: 100%; max-height: 360px; object-fit: contain; background: var(--tag-bg); border-radius: 4px; }
 
+    /* ── Featured hero ── */
+    .featured-hero { display: block; text-decoration: none; color: inherit; margin: 0.5rem 0 2.25rem; }
+    .featured-eyebrow { display: flex; align-items: center; gap: 0.65rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.8rem; }
+    .featured-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .featured-media { position: relative; border-radius: 6px; overflow: hidden; background: var(--tag-bg); aspect-ratio: 3 / 2; }
+    .featured-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s ease; }
+    .featured-hero:hover .featured-media img { transform: scale(1.035); }
+    .featured-scrim { position: absolute; inset: 0; background: linear-gradient(to top, rgba(18,16,12,0.82) 0%, rgba(18,16,12,0.35) 38%, rgba(18,16,12,0) 62%); }
+    .featured-overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.15rem 1.3rem; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+    .featured-name { font-family: 'Lora', serif; font-size: 1.55rem; font-weight: 400; line-height: 1.2; color: #fff; letter-spacing: -0.01em; }
+    .featured-meta-line { font-size: 0.73rem; color: rgba(255,255,255,0.82); margin-top: 0.3rem; letter-spacing: 0.01em; }
+    .featured-score-badge { flex-shrink: 0; font-family: 'Lora', serif; font-size: 1.35rem; line-height: 1; color: #fff; background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.18); border-radius: 6px; padding: 0.4rem 0.6rem; white-space: nowrap; }
+    .featured-score-badge.top { color: #e2be6f; }
+    .featured-score-badge .featured-denom { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 0.6rem; color: rgba(255,255,255,0.7); margin-left: 1px; }
+    .featured-summary { font-size: 0.92rem; color: var(--secondary); line-height: 1.7; margin-top: 1rem; }
+    .featured-cta { display: inline-block; margin-top: 0.8rem; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); border-bottom: 1px solid var(--muted); padding-bottom: 2px; transition: border-color 0.15s; }
+    .featured-hero:hover .featured-cta { border-color: var(--text); }
+    @media (max-width: 480px) {
+      .featured-name { font-size: 1.3rem; }
+      .featured-media { aspect-ratio: 4 / 3; }
+      .featured-overlay { padding: 1rem 1rem; }
+    }
+
     .empty-state { padding: 3rem 0; font-size: 0.88rem; color: var(--muted); font-style: italic; }
 
     /* ── Map ── */
@@ -231,6 +254,7 @@
 
     <!-- RATINGS -->
     <div id="ratings" class="page active">
+      <div id="featuredHero"></div>
       <div class="ratings-controls">
         <div class="tab-row">
           <div class="tab-group">

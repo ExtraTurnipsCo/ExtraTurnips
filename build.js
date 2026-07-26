@@ -198,6 +198,83 @@ function homeCardHTML(r) {
         </div>`;
 }
 
+// Recency of a rating as epoch-ms, for ranking the hero. The slug's creation
+// timestamp (e.g. "...-1784400368287") is the most reliable signal of when a
+// review was posted and is finer-grained than our month-level `date:` field, so
+// prefer it; fall back to the parsed `date:` for older hand-slugged entries.
+// Both land on the same ms scale, so they compare consistently.
+function recencyMs(x) {
+  const m = String(x.slug || '').match(/(\d{13})$/);
+  if (m) return Number(m[1]);
+  const iso = isoDate(x.date);
+  return iso ? new Date(iso).getTime() : 0;
+}
+
+// Picks the review to spotlight in the homepage hero: an explicitly flagged
+// `featured: true` rating if any (curated "Review of the Week"), otherwise the
+// most recently posted. Restricted to admin ratings by the caller.
+function pickFeatured(ratings) {
+  const flagged = ratings.filter(r => r.featured);
+  const pool = flagged.length ? flagged : ratings;
+  return [...pool].sort((a, b) => recencyMs(b) - recencyMs(a))[0] || null;
+}
+
+// Server-rendered highlight card at the top of the homepage. Static (the SPA
+// never touches #featuredHero), so crawlers and no-JS visitors get it too. The
+// whole block links to the permalink; text sits over the photo behind a scrim.
+function heroHTML(r) {
+  if (!r) return '';
+  const score = Math.round(total(r) * 10) / 10;
+  const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
+  const photo = photos[0];
+  const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
+  const label = r.featured ? 'Review of the Week' : 'Latest Review';
+  const points = Array.isArray(r.summary) ? r.summary.filter(Boolean) : [];
+  const summaryText = points.length ? points[0] : truncate(r.note, 150);
+  const url = `/ratings/${r.slug}.html`;
+  const metaLine = [r.location, r.date].filter(Boolean).map(esc).join(' &middot; ');
+
+  // No photo → fall back to a text card so the hero still reads well; a
+  // pictureless review shouldn't render an empty grey box.
+  if (!photo) {
+    return `
+      <a class="featured-hero" href="${url}" aria-label="Read our review of ${esc(r.name)}">
+        <div class="featured-eyebrow">${label}</div>
+        <div class="rating-card visible" style="cursor:pointer;border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+          <div class="card-header">
+            <div class="card-header-left">
+              <div class="card-name">${esc(r.name)}</div>
+              <div class="card-meta">${metaLine}${typeLabel ? ' &middot; ' + esc(typeLabel) : ''}</div>
+            </div>
+            <div class="card-header-right">
+              <span class="card-score${score >= 80 ? ' top' : ''}">${score} <span class="card-denom">/100</span></span>
+            </div>
+          </div>
+        </div>
+        <p class="featured-summary">${esc(summaryText)}</p>
+        <span class="featured-cta">Read the full review &rarr;</span>
+      </a>`;
+  }
+
+  return `
+      <a class="featured-hero" href="${url}" aria-label="Read our review of ${esc(r.name)}">
+        <div class="featured-eyebrow">${label}</div>
+        <div class="featured-media">
+          <img src="${esc(photo)}" alt="Shawarma at ${esc(r.name)}, Toronto" />
+          <div class="featured-scrim"></div>
+          <div class="featured-overlay">
+            <div class="featured-overlay-text">
+              <div class="featured-name">${esc(r.name)}</div>
+              <div class="featured-meta-line">${metaLine}</div>
+            </div>
+            <span class="featured-score-badge${score >= 80 ? ' top' : ''}">${score}<span class="featured-denom">/100</span></span>
+          </div>
+        </div>
+        <p class="featured-summary">${esc(summaryText)}</p>
+        <span class="featured-cta">Read the full review &rarr;</span>
+      </a>`;
+}
+
 async function build() {
 
 const allRatings = loadCollection('content/ratings');
@@ -440,6 +517,7 @@ function postPageHTML(p) {
 const byScore = (a, b) => total(b) - total(a);
 const ssrRatings = [...adminRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
+const ssrHero = heroHTML(pickFeatured(adminRatings));
 
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
 const output = template
@@ -447,6 +525,7 @@ const output = template
   .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
   .replace('__POSTS_DATA__', () => JSON.stringify(posts))
   .replace('__CF_BEACON__', () => cfBeacon)
+  .replace('<div id="featuredHero"></div>', () => `<div id="featuredHero">${ssrHero}</div>`)
   .replace('<div id="ratingCards"></div>', () => `<div id="ratingCards">${ssrRatings}</div>`)
   .replace('<div id="communityCards"></div>', () => `<div id="communityCards">${ssrCommunity}</div>`)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);

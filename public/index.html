@@ -453,7 +453,8 @@
       return { text: clean.slice(0, lastSpace > 0 ? lastSpace : maxLen).trimEnd() + '…', truncated: true };
     }
 
-    function ratingCardHTML(r, idx) {
+    // `isTopRated` renders the card already open — see renderList.
+    function ratingCardHTML(r, idx, isTopRated) {
       const score = Math.round(total(r) * 10) / 10;
       const isTop = score >= 80;
       const tags = Array.isArray(r.tags) ? r.tags : [];
@@ -478,7 +479,7 @@
           : summary.text;
       }
       return `
-        <div class="rating-card" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
+        <div class="rating-card${isTopRated ? ' expanded' : ''}" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
           <div class="card-header">
             <div class="card-header-left">
               <div class="card-name">${r.name}</div>
@@ -525,7 +526,13 @@
     function renderList(data, containerId) {
       const container = document.getElementById(containerId);
       const sorted = [...data].sort((a, b) => sortKey(b) - sortKey(a));
-      container.innerHTML = sorted.map((r, i) => ratingCardHTML(r, i)).join('');
+      // The best-scoring review renders already open so it reads as the page's
+      // lead instead of another row to click. Deliberately keyed to the overall
+      // score, not the active sort, so re-sorting by Taste/Value/Experience
+      // doesn't move it. Compared by identity, so a tie at the top still opens
+      // exactly one card — the click handler assumes at most one is open.
+      const top = sorted.reduce((best, r) => (best && total(best) >= total(r) ? best : r), null);
+      container.innerHTML = sorted.map((r, i) => ratingCardHTML(r, i, r === top)).join('');
       observeCards(container);
     }
 

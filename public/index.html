@@ -82,6 +82,15 @@
     .card-chevron { width: 15px; height: 15px; flex-shrink: 0; color: var(--muted); transition: transform 0.3s ease; }
     .rating-card.expanded .card-chevron { transform: rotate(180deg); }
 
+    /* Top-rated highlight — borrows the featured hero's eyebrow so the best
+       review reads as a highlight in the list rather than another row. Gold
+       picks up .card-score.top, which the leader already earns at 90+.
+       Must stay below .rating-card:first-child: equal specificity, so source
+       order is what lets the gold rule win. */
+    .card-top-eyebrow { display: flex; align-items: center; gap: 0.65rem; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 0.5rem 0 0.7rem; }
+    .card-top-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--gold); opacity: 0.3; }
+    .rating-card.top-rated { border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); }
+
     /* Expand animation — CSS grid trick */
     .card-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s ease; }
     .card-body-inner { overflow: hidden; min-height: 0; }
@@ -478,8 +487,11 @@
           ? `${summary.text} <a class="card-readmore" href="/ratings/${r.slug}.html" onclick="event.stopPropagation()">Read full review &rarr;</a>`
           : summary.text;
       }
+      // The eyebrow is a sibling above the card, not a child, so it sits
+      // outside the gold frame and clear of the click-to-collapse target.
       return `
-        <div class="rating-card${isTopRated ? ' expanded' : ''}" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
+        ${isTopRated ? '<div class="card-top-eyebrow">Top Rated</div>' : ''}
+        <div class="rating-card${isTopRated ? ' top-rated expanded' : ''}" data-idx="${idx}" style="transition-delay:${Math.min(idx * 0.06, 0.4)}s">
           <div class="card-header">
             <div class="card-header-left">
               <div class="card-name">${r.name}</div>

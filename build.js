@@ -299,9 +299,9 @@ const sharedStyle = (template.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
 
 const permalinkExtraCSS = `
   .permalink-nav { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); }
-  .permalink-nav a { font-family: 'Lora', serif; font-size: 1.4rem; color: var(--text); text-decoration: none; }
-  .permalink-back { display: inline-block; margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; }
-  .permalink-back:hover { color: var(--text); }
+  .permalink-nav a { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
+  .permalink-back { display: inline-block; margin-top: 2rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+  .permalink-back:hover { color: var(--accent); }
 `;
 
 function formatCommentDate(iso) {
@@ -411,13 +411,14 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd 
   <meta name="twitter:description" content="${esc(description)}" />
   <meta name="twitter:image" content="${esc(ogImage)}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>${sharedStyle}${permalinkExtraCSS}</style>
 </head>
 <body>
-  <div class="container">
-    <div class="permalink-nav"><a href="/">Extra Turnips</a></div>
-    <div class="page active" style="padding-top:2rem;">
+  <div class="container tiers">
+    <div class="permalink-nav wide"><a href="/">Extra Turnips</a></div>
+    <div class="page active tiers bleed" style="padding-top:2rem;">
       ${bodyHTML}
     </div>
   </div>

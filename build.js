@@ -520,16 +520,29 @@ const ssrRatings = [...adminRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrHero = heroHTML(pickFeatured(adminRatings));
 
+// Fills an empty container in the template with server-rendered markup,
+// keeping whatever attributes it carries. Matching the tag literally meant
+// that adding a class to the div in the template silently produced an empty
+// container and a homepage with no hero, so a miss throws instead.
+function injectInto(html, id, content) {
+  const re = new RegExp(`(<div id="${id}"[^>]*>)</div>`);
+  if (!re.test(html)) {
+    throw new Error(`build: no empty <div id="${id}"> found in the template to inject into`);
+  }
+  return html.replace(re, (_, openTag) => `${openTag}${content}</div>`);
+}
+
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
-const output = template
+let output = template
   .replace('__RATINGS_DATA__', () => JSON.stringify(adminRatings))
   .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
   .replace('__POSTS_DATA__', () => JSON.stringify(posts))
   .replace('__CF_BEACON__', () => cfBeacon)
-  .replace('<div id="featuredHero"></div>', () => `<div id="featuredHero">${ssrHero}</div>`)
-  .replace('<div id="ratingCards"></div>', () => `<div id="ratingCards">${ssrRatings}</div>`)
-  .replace('<div id="communityCards"></div>', () => `<div id="communityCards">${ssrCommunity}</div>`)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
+
+output = injectInto(output, 'featuredHero', ssrHero);
+output = injectInto(output, 'ratingCards', ssrRatings);
+output = injectInto(output, 'communityCards', ssrCommunity);
 
 fs.writeFileSync('public/index.html', output);
 

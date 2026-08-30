@@ -299,9 +299,9 @@ const sharedStyle = (template.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
 
 const permalinkExtraCSS = `
   .permalink-nav { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); }
-  .permalink-nav a { font-family: 'Lora', serif; font-size: 1.4rem; color: var(--text); text-decoration: none; }
-  .permalink-back { display: inline-block; margin-top: 2rem; font-size: 0.8rem; color: var(--muted); text-decoration: none; }
-  .permalink-back:hover { color: var(--text); }
+  .permalink-nav a { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
+  .permalink-back { display: inline-block; margin-top: 2rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+  .permalink-back:hover { color: var(--accent); }
 `;
 
 function formatCommentDate(iso) {
@@ -411,13 +411,14 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd 
   <meta name="twitter:description" content="${esc(description)}" />
   <meta name="twitter:image" content="${esc(ogImage)}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>${sharedStyle}${permalinkExtraCSS}</style>
 </head>
 <body>
-  <div class="container">
-    <div class="permalink-nav"><a href="/">Extra Turnips</a></div>
-    <div class="page active" style="padding-top:2rem;">
+  <div class="container tiers">
+    <div class="permalink-nav wide"><a href="/">Extra Turnips</a></div>
+    <div class="page active tiers bleed" style="padding-top:2rem;">
       ${bodyHTML}
     </div>
   </div>
@@ -519,16 +520,29 @@ const ssrRatings = [...adminRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrHero = heroHTML(pickFeatured(adminRatings));
 
+// Fills an empty container in the template with server-rendered markup,
+// keeping whatever attributes it carries. Matching the tag literally meant
+// that adding a class to the div in the template silently produced an empty
+// container and a homepage with no hero, so a miss throws instead.
+function injectInto(html, id, content) {
+  const re = new RegExp(`(<div id="${id}"[^>]*>)</div>`);
+  if (!re.test(html)) {
+    throw new Error(`build: no empty <div id="${id}"> found in the template to inject into`);
+  }
+  return html.replace(re, (_, openTag) => `${openTag}${content}</div>`);
+}
+
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
-const output = template
+let output = template
   .replace('__RATINGS_DATA__', () => JSON.stringify(adminRatings))
   .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
   .replace('__POSTS_DATA__', () => JSON.stringify(posts))
   .replace('__CF_BEACON__', () => cfBeacon)
-  .replace('<div id="featuredHero"></div>', () => `<div id="featuredHero">${ssrHero}</div>`)
-  .replace('<div id="ratingCards"></div>', () => `<div id="ratingCards">${ssrRatings}</div>`)
-  .replace('<div id="communityCards"></div>', () => `<div id="communityCards">${ssrCommunity}</div>`)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
+
+output = injectInto(output, 'featuredHero', ssrHero);
+output = injectInto(output, 'ratingCards', ssrRatings);
+output = injectInto(output, 'communityCards', ssrCommunity);
 
 fs.writeFileSync('public/index.html', output);
 

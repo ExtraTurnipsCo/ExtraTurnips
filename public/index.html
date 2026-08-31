@@ -284,6 +284,11 @@
     .map-popup-denom { font-size: 0.62rem; color: var(--muted); font-family: var(--body); }
     .map-popup-link { font-size: 0.7rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .map-popup-link:hover { color: var(--text); border-color: var(--text); }
+    /* Score-tiered teardrop pins (fill colour set inline per rating). */
+    .et-pin-marker { line-height: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+    /* Photo revealed inside the popup on click, not on the pin itself. */
+    .map-popup-photo { display: block; width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; background: var(--tag-bg); margin: 0.1rem 0 0.55rem; }
+    .map-popup-community { margin-top: 0.55rem; font-size: 0.62rem; letter-spacing: 0.09em; text-transform: uppercase; color: #2A81CB; font-family: var(--body); }
 
     /* ── Blog ── */
     .blog-header { margin-bottom: 2.5rem; }
@@ -707,6 +712,15 @@
     // pair of globals, so the two never fight over the same Leaflet handle.
     const mapInstances = {};
 
+    // A teardrop map pin filled with the given colour, white outline + centre
+    // dot. Anchored so the tip sits on the coordinate (see iconAnchor below).
+    function pinSVG(color) {
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="36" viewBox="0 0 26 36" aria-hidden="true">
+        <path d="M13 35.3S24.3 21.7 24.3 12.7C24.3 6.24 19.24 1 13 1S1.7 6.24 1.7 12.7C1.7 21.7 13 35.3 13 35.3Z" fill="${color}" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="13" cy="12.7" r="4.2" fill="#ffffff"/>
+      </svg>`;
+    }
+
     function renderMap(containerId = 'mapContainer', opts = {}) {
       const located = [...allRatings, ...communityRatings].filter(r => r.lat != null && r.lng != null);
       const container = document.getElementById(containerId);
@@ -737,13 +751,32 @@
       inst.markers.forEach(m => inst.map.removeLayer(m));
       inst.markers = located.map(r => {
         const score = Math.round(total(r) * 10) / 10;
-        const marker = L.marker([r.lat, r.lng]).addTo(inst.map);
+        // Community submissions are always blue; our own ratings are tiered by
+        // score — green ≥85, amber 70–84, red below 70.
+        const color = r.submitter ? '#2A81CB'
+          : score >= 85 ? '#2F9E5B'
+          : score >= 70 ? '#E0A21A'
+          : '#C6432E';
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="et-pin-marker">${pinSVG(color)}</div>`,
+          iconSize: [26, 36],
+          iconAnchor: [13, 35],
+          popupAnchor: [0, -32]
+        });
+        const marker = L.marker([r.lat, r.lng], { icon }).addTo(inst.map);
+        // The photo lives in the popup — it only appears once a pin is clicked.
+        const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
+        const photoHTML = photos.length ? `<img class="map-popup-photo" src="${photos[0]}" alt="${r.name}" />` : '';
+        const submitterHTML = r.submitter ? ` &middot; ${r.submitter}` : '';
         marker.bindPopup(`
           <div class="map-popup">
             <div class="map-popup-name">${r.name}</div>
-            <div class="map-popup-meta">${r.location}</div>
+            <div class="map-popup-meta">${r.location}${submitterHTML}</div>
+            ${photoHTML}
             <div class="map-popup-score">${score}<span class="map-popup-denom">/100</span></div>
             <a class="map-popup-link" href="/ratings/${r.slug}.html" target="_blank" rel="noopener">View rating &#x2197;</a>
+            ${r.submitter ? '<div class="map-popup-community">Community</div>' : ''}
           </div>`);
         return marker;
       });

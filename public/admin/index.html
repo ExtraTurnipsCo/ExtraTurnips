@@ -120,11 +120,6 @@
           <input type="text" name="location" required placeholder="e.g. 123 King St W, Toronto" />
         </div>
         <div class="form-row">
-          <label>Date</label>
-          <input type="text" name="date" placeholder="e.g. June 2026" />
-          <p class="form-hint">Leave blank to use today's date.</p>
-        </div>
-        <div class="form-row">
           <label>Type</label>
           <select name="type">
             <option value="chicken">Chicken</option>
@@ -300,7 +295,8 @@
           photos.push(await uploadToCloudinary(photoFile));
         }
       }
-      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), photos });
+      // Date is set server-side to the day the rating is added (see admin.js).
+      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), photos });
       status.textContent = 'Published! Site will redeploy in ~30 seconds.';
       status.className = 'form-status ok';
       e.target.reset();

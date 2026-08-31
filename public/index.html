@@ -51,13 +51,33 @@
        default; a section opts out with .wide or .bleed. This replaces the old
        single 640px container, which forced a map and a photo-led hero into the
        same measure as body prose. */
+    /* Narrow screens collapse to a single column. The side tiers MUST be zero
+       here, not merely small: grid grows non-flexible tracks equally toward
+       their limits, so a 180px/660px/180px template on a 390px phone splits
+       the space three ways and leaves the reading column at ~117px with 233px
+       wasted either side. Zero-width side tracks keep .bleed reaching the
+       viewport edges while .wide and .read collapse onto the same column. */
     .tiers {
       grid-template-columns:
         [full-start] minmax(1.25rem, 1fr)
-        [wide-start] minmax(0, 180px)
+        [wide-start] 0
         [read-start] minmax(0, 660px) [read-end]
-        minmax(0, 180px) [wide-end]
+        0 [wide-end]
         minmax(1.25rem, 1fr) [full-end];
+    }
+
+    /* Side tiers only once they genuinely fit: 660 + 2x180 + gutters. Below
+       this the tiered template would steal width from the text to show empty
+       columns. */
+    @media (min-width: 1080px) {
+      .tiers {
+        grid-template-columns:
+          [full-start] minmax(1.5rem, 1fr)
+          [wide-start] minmax(0, 180px)
+          [read-start] minmax(0, 660px) [read-end]
+          minmax(0, 180px) [wide-end]
+          minmax(1.5rem, 1fr) [full-end];
+      }
     }
     .tiers > * { grid-column: read; }
     .tiers > .wide { grid-column: wide; }
@@ -319,15 +339,33 @@
     footer { margin-top: 4rem; padding: 1.75rem 0 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 
     /* ── Mobile ── */
-    @media (max-width: 480px) {
-      nav { flex-wrap: wrap; gap: 0.75rem; padding: 1.25rem 0; }
+    @media (max-width: 700px) {
+      /* Uppercase mono with wide tracking is much broader than the sans it
+         replaced, so the nav needs less of it, not more — the old override
+         set a LARGER size here than on desktop and pushed the row to wrap. */
+      nav { flex-wrap: wrap; gap: 0.6rem 0.75rem; padding: 1.25rem 0; }
       .nav-logo { font-size: 1.2rem; }
-      .nav-logo img { height: 34px; }
-      .nav-links { gap: 1rem; }
-      .nav-links a { font-size: 0.78rem; }
+      .nav-logo img { height: 32px; }
+      .nav-links { gap: 1.05rem; }
+      .nav-links a { font-size: 0.66rem; letter-spacing: 0.07em; }
+
+      /* Eyebrow and link will not sit on one line at phone widths. */
+      .map-band-head { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+      .map-band { margin-bottom: 1.75rem; }
+
+      .card-name { font-size: 1.05rem; }
+      .card-score { font-size: 1.5rem; }
+      .featured-score-badge { font-size: 1.5rem; padding: 0.35rem 0.5rem; }
+      .featured-meta-line { font-size: 0.62rem; letter-spacing: 0.04em; }
+      .about-section h2 { font-size: 1.5rem; }
+      footer { flex-direction: column; gap: 0.4rem; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
       .post-full h1 { font-size: 1.45rem; }
       .form-scores { grid-template-columns: 1fr; }
-      footer { flex-direction: column; gap: 0.4rem; text-align: center; }
+      .subscore-lbl { width: 4.6rem; }
+      .modal { padding: 1.5rem 1.25rem; }
     }
   </style>
 </head>

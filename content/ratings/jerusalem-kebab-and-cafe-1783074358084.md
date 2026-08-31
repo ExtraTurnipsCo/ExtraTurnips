@@ -10,7 +10,4 @@ experience: 22
 photos:
   - >-
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1783073200/npjroacmc0l1jp1z8f0f.jpg
-tags:
-  - Plate
-  - worldwide
 ---

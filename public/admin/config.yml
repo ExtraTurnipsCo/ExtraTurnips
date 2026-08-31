@@ -17,7 +17,6 @@ collections:
       - { label: "Date", name: "date", widget: "string" }
       - { label: "Type", name: "type", widget: "select", options: ["chicken", "lamb", "mixed"] }
       - { label: "Note", name: "note", widget: "text" }
-      - { label: "Tags", name: "tags", widget: "list" }
       - { label: "Taste /50", name: "taste", widget: "number", value_type: "float" }
       - { label: "Value /25", name: "value", widget: "number", value_type: "float" }
       - { label: "Experience /25", name: "experience", widget: "number", value_type: "float" }

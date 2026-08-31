@@ -24,7 +24,4 @@ photos:
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1788214918/ztuls8hzjqu0qmlcheob.jpg
   - >-
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1788214920/j9ik6jfgniaiapcp1dbx.jpg
-tags:
-  - Wrap
-  - Guest:Eden
 ---

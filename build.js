@@ -174,7 +174,7 @@ function homeCardHTML(r) {
     ? `<ul class="card-summary">${points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`
     : `<p>${esc(truncate(r.note, 220))}</p>`;
   const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
-  const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : '';
+  const photoHTML = photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : '';
   return `
         <div class="rating-card">
           <div class="card-header">
@@ -463,7 +463,7 @@ function ratingPageHTML(r) {
               <span class="subscore-val">${r.experience}</span>
             </div>
           </div>
-          ${photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : ''}
+          ${photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : ''}
         </div>
       </div>
       <a class="permalink-back" href="/">&larr; All ratings</a>

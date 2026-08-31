@@ -173,9 +173,32 @@
     .post-permalink:hover { color: var(--text); border-color: var(--text); }
 
     /* Photo strip */
-    .photo-strip { display: flex; gap: 0.5rem; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-top: 1.1rem; border-radius: 4px; }
+    /* ── Photo strip ──
+       Slides are sized for portrait phone shots (3:4) and stop short of the
+       container, so the next photo peeks in at the edge — that sliver is what
+       tells you the strip scrolls, which a full-width slide never did. A lone
+       photo has nothing to swipe to, so it gets the full width uncropped. */
+    .photo-strip {
+      display: flex; gap: 0.6rem; margin-top: 1.1rem; padding-bottom: 0.2rem;
+      overflow-x: auto; scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
     .photo-strip::-webkit-scrollbar { display: none; }
-    .photo-strip img { scroll-snap-align: start; flex-shrink: 0; width: 100%; max-height: 360px; object-fit: contain; background: var(--surface); border-radius: 4px; }
+    .photo-strip img {
+      scroll-snap-align: start; flex: 0 0 auto;
+      width: min(82%, 320px); aspect-ratio: 3 / 4; object-fit: cover;
+      background: var(--surface); border-radius: 6px;
+    }
+    .photo-strip.single img {
+      width: 100%; max-width: 480px; aspect-ratio: auto;
+      max-height: 560px; object-fit: contain;
+    }
+    .photo-hint {
+      display: flex; align-items: center; gap: 0.45rem; margin-top: 0.55rem;
+      font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .photo-hint::after { content: '›››'; letter-spacing: 0.12em; color: var(--accent); }
 
     /* ── Featured hero ──
        Runs edge to edge: it is the one photo-led moment on the page and the
@@ -622,7 +645,7 @@
       const score = Math.round(total(r) * 10) / 10;
       const isTop = score >= 80;
       const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
-      const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${src}" alt="${r.name}" loading="lazy" />`).join('')}</div>` : '';
+      const photoHTML = photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${src}" alt="${r.name}" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : '';
       const submitterHTML = r.submitter ? `<div class="community-submitter">Submitted by ${r.submitter}</div>` : '';
       const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
       const points = Array.isArray(r.summary) ? r.summary.filter(Boolean) : [];

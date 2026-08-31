@@ -13,9 +13,6 @@ note: This place is elite. Knocks it out of the park on taste, you will struggle
   on value, we are two big hungry guys and each had our own; however, this wrap
   could easily be split into two meals, which is why value was high despite an
   above average cost for the area.
-tags:
-  - Wrap
-  - Guest:Eden
 summary:
   - "Elite, expertly crafted Saj-style wraps — among the GTA's best for taste"
   - "Toppings only good-not-great and sauces too mayo-heavy and confusing"

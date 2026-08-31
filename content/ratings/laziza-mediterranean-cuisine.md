@@ -10,8 +10,6 @@ note: Toppings were the all-stars of this plate so expect lots of different
   as the base which was a unique option that added a unique flavor you don't
   always see. Bar seating looking onto Bloor Street was a great touch that we
   took full advantage of.
-tags:
-  - Plate
 summary:
   - "Standout toppings — crisp purple cabbage, hot peppers, pickled turnips"
   - "Chicken did its job but nothing more, and we wanted more turnips"

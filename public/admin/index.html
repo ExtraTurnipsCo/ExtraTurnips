@@ -68,10 +68,6 @@
     .sub-note { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.7; margin-bottom: 1rem; }
     .sub-scores { display: flex; gap: 1.5rem; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 1rem; }
     .sub-scores strong { color: var(--text-primary); font-weight: 400; }
-    .sub-tags-row { margin-bottom: 1rem; }
-    .sub-tags-row label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.3rem; }
-    .sub-tags-row input { font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 300; background: transparent; border: 1px solid var(--border); border-radius: 3px; padding: 0.4rem 0.65rem; color: var(--text-primary); outline: none; width: 100%; max-width: 320px; }
-    .sub-tags-row input:focus { border-color: var(--accent); }
     .sub-actions { display: flex; gap: 0.75rem; align-items: center; }
     .btn-approve { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.45rem 1.25rem; background: var(--accent); color: var(--bg); border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s; }
     .btn-approve:hover { opacity: 0.8; }
@@ -153,11 +149,6 @@
             <label>Experience /25</label>
             <input type="number" name="experience" min="0" max="25" step="0.5" required placeholder="e.g. 20" />
           </div>
-        </div>
-        <div class="form-row">
-          <label>Tags</label>
-          <input type="text" name="tags" placeholder="e.g. Wrap, Plate, Guest:Eden" />
-          <p class="form-hint">Comma-separated.</p>
         </div>
         <div class="form-row">
           <label>Photos (optional)</label>
@@ -309,7 +300,7 @@
           photos.push(await uploadToCloudinary(photoFile));
         }
       }
-      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), tags:fd.get('tags'), photos });
+      await api('POST', { action:'create-rating', name:fd.get('name'), location:fd.get('location'), date:fd.get('date'), type:fd.get('type'), note:fd.get('note'), taste:fd.get('taste'), value:fd.get('value'), experience:fd.get('experience'), photos });
       status.textContent = 'Published! Site will redeploy in ~30 seconds.';
       status.className = 'form-status ok';
       e.target.reset();
@@ -369,10 +360,6 @@
         <div>Value <strong>${val}/25</strong></div>
         <div>Experience <strong>${exp}/25</strong></div>
       </div>
-      <div class="sub-tags-row">
-        <label>Tags (comma-separated, optional)</label>
-        <input type="text" id="tags-${s.id}" placeholder="e.g. Wrap, Plate" />
-      </div>
       <div class="sub-actions">
         <button class="btn-approve" id="approve-${s.id}" onclick="approve('${s.id}','${dataAttr}')">Approve</button>
         <button class="btn-reject" id="reject-${s.id}" onclick="reject('${s.id}')">Reject</button>
@@ -386,11 +373,10 @@
     const aBtn = document.getElementById(`approve-${id}`);
     const rBtn = document.getElementById(`reject-${id}`);
     const fb = document.getElementById(`feedback-${id}`);
-    const tags = document.getElementById(`tags-${id}`).value;
     aBtn.disabled = rBtn.disabled = true;
     aBtn.textContent = 'Approving...';
     try {
-      await api('POST', { action:'approve', submissionId:id, name:d.name, location:d.location, type:d.type, note:d.note, submitter:d.submitter, taste:d.taste, value:d.value, experience:d.experience, tags, photos:d.photos });
+      await api('POST', { action:'approve', submissionId:id, name:d.name, location:d.location, type:d.type, note:d.note, submitter:d.submitter, taste:d.taste, value:d.value, experience:d.experience, photos:d.photos });
       document.getElementById(`sub-${id}`).style.opacity = '0.4';
       fb.textContent = 'Approved — redeploying shortly.';
       fb.className = 'sub-feedback ok';
@@ -486,7 +472,6 @@
         <div class="form-row"><label>Value /25</label><input type="number" min="0" max="25" step="0.5" id="ef-value-${key}" value="${esc(r.value)}" /></div>
         <div class="form-row"><label>Experience /25</label><input type="number" min="0" max="25" step="0.5" id="ef-experience-${key}" value="${esc(r.experience)}" /></div>
       </div>
-      <div class="form-row"><label>Tags</label><input type="text" id="ef-tags-${key}" value="${esc((r.tags||[]).join(', '))}" /></div>
       <div class="form-row">
         <label>Photos</label>
         <div id="ef-existing-${key}" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.6rem;"></div>
@@ -554,7 +539,6 @@
         taste: document.getElementById(`ef-taste-${key}`).value,
         value: document.getElementById(`ef-value-${key}`).value,
         experience: document.getElementById(`ef-experience-${key}`).value,
-        tags: document.getElementById(`ef-tags-${key}`).value,
         submitter: r.submitter,
         photos
       };
@@ -562,7 +546,6 @@
       Object.assign(r, {
         name: body.name, location: body.location, date: body.date, type: body.type,
         note: body.note, taste: body.taste, value: body.value, experience: body.experience,
-        tags: body.tags.split(',').map(t => t.trim()).filter(Boolean),
         photos, photo_url: undefined, sha: result.sha
       });
       delete editPhotoState[key];

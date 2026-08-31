@@ -7,8 +7,6 @@ note: 15$ for a hearty lunch plate that it wouldn't be a crime to save for
   later. They got it out quick, had solid toppings selection, and no problem
   with asking for extras. A good stop on the way down from Stouffville after
   golf. Complementary waters so long as we left a review sealed the deal for us.
-tags:
-  - Plate
 summary:
   - "$15 hearty lunch plate, big enough to save half for later"
   - "Quick service, solid toppings selection, and generous with extras"

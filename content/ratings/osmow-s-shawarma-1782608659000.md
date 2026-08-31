@@ -25,6 +25,4 @@ value: 18
 experience: 20
 photo_url: >-
   https://res.cloudinary.com/dk5zuikbf/image/upload/v1782608654/f3pzz0w2fyoywjpmzrs4.jpg
-tags:
-  - Plate
 ---

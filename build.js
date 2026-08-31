@@ -173,8 +173,6 @@ function homeCardHTML(r) {
   const noteHTML = points.length
     ? `<ul class="card-summary">${points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`
     : `<p>${esc(truncate(r.note, 220))}</p>`;
-  const tags = Array.isArray(r.tags) ? r.tags : [];
-  const tagsHTML = tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : '';
   const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
   const photoHTML = photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : '';
   return `
@@ -191,7 +189,6 @@ function homeCardHTML(r) {
           <div class="card-detail" style="padding-bottom:1rem;">
             ${r.submitter ? `<div class="community-submitter">Submitted by ${esc(r.submitter)}</div>` : ''}
             <div class="card-note">${noteHTML}</div>
-            ${tagsHTML}
             ${photoHTML}
             <a class="card-permalink" href="/ratings/${r.slug}.html">Read full review &rarr;</a>
           </div>
@@ -433,7 +430,6 @@ function ratingPageHTML(r) {
   const ogImage = photos[0] || `${SITE_URL}/ExtraTurnipsLogo.png`;
   const description = truncate(r.note, 180);
   const url = `${SITE_URL}/ratings/${r.slug}.html`;
-  const tags = Array.isArray(r.tags) ? r.tags : [];
   const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
 
   const bodyHTML = `
@@ -467,7 +463,6 @@ function ratingPageHTML(r) {
               <span class="subscore-val">${r.experience}</span>
             </div>
           </div>
-          ${tags.length ? `<div class="card-tags">${tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
           ${photos.length ? `<div class="photo-strip">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>` : ''}
         </div>
       </div>
@@ -495,7 +490,7 @@ function postPageHTML(p) {
   const bodyHTML = `
       <div class="post-full">
         <h1>${esc(p.title)}</h1>
-        <div class="post-meta">${esc(p.date)} &middot; ${esc(p.read)} <span class="tag" style="margin-top:0">${esc(p.tag)}</span></div>
+        <div class="post-meta">${esc(p.date)} &middot; ${esc(p.read)} <span class="post-tag">${esc(p.tag)}</span></div>
         ${paragraphs.map(par => `<p>${esc(par)}</p>`).join('\n        ')}
         <a class="permalink-back" href="/">&larr; Back to blog</a>
       </div>

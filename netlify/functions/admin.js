@@ -115,9 +115,6 @@ function buildRatingMarkdown(data) {
     : (data.photos && String(data.photos).trim() ? String(data.photos).split(',').map(s => s.trim()).filter(Boolean) : []);
   if (data.photo_url) photos.push(data.photo_url);
   if (photos.length) fm.photos = photos;
-  if (data.tags && String(data.tags).trim()) {
-    fm.tags = String(data.tags).split(',').map(t => t.trim()).filter(Boolean);
-  }
   return `---\n${yaml.dump(fm)}---\n`;
 }
 

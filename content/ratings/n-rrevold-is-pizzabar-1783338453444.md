@@ -22,7 +22,4 @@ experience: 17
 photos:
   - >-
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1783338451/rmc9pchua1yrshc6ljxs.jpg
-tags:
-  - Wrap
-  - worldwide
 ---

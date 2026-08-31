@@ -195,6 +195,8 @@
     .photo-strip.single img {
       width: 100%; max-width: 480px; aspect-ratio: auto;
       max-height: 560px; object-fit: contain;
+      /* auto margins centre a flex item regardless of justify-content */
+      margin-inline: auto;
     }
     .photo-hint {
       display: flex; align-items: center; gap: 0.45rem; margin-top: 0.55rem;

@@ -189,6 +189,9 @@
       width: min(82%, 320px); aspect-ratio: 3 / 4; object-fit: cover;
       background: var(--surface); border-radius: 6px;
     }
+    /* A lone photo has no strip to scroll, so centre it rather than
+       leaving it pinned to the left of a wide card. */
+    .photo-strip.single { justify-content: center; }
     .photo-strip.single img {
       width: 100%; max-width: 480px; aspect-ratio: auto;
       max-height: 560px; object-fit: contain;

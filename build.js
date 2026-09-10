@@ -414,7 +414,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd 
 </head>
 <body>
   <div class="container tiers">
-    <div class="permalink-nav wide"><a href="/">Extra Turnips</a><a class="rate-cta" href="/#rate">+ Rate a Spot</a></div>
+    <div class="permalink-nav wide"><a href="/">Extra Turnips</a><a class="rate-cta" href="/#rate">+ Leave a Review</a></div>
     <div class="page active tiers bleed" style="padding-top:2rem;">
       ${bodyHTML}
     </div>

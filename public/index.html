@@ -443,7 +443,7 @@
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
         <li><a id="nav-about" onclick="show('about')">About</a></li>
       </ul>
-      <button class="rate-cta" onclick="openModal()">+ Rate a Spot</button>
+      <button class="rate-cta" onclick="openModal()">+ Leave a Review</button>
     </nav>
 
     <!-- RATINGS -->
@@ -464,7 +464,7 @@
             <button class="tab-btn active" id="tab-ours" onclick="switchRatingTab('ours')">Austin & Jamie</button>
             <button class="tab-btn" id="tab-community" onclick="switchRatingTab('community')">Community</button>
           </div>
-          <button class="rate-cta" onclick="openModal()">+ Rate a Spot</button>
+          <button class="rate-cta" onclick="openModal()">+ Leave a Review</button>
         </div>
         <div class="sort-row">
           <button class="sort-btn active" id="sort-total" onclick="setSort('total')">Total</button>
@@ -1052,7 +1052,7 @@
     window.addEventListener('load', () => {
       renderRatings(); renderCommunity(); renderBlog(); renderHomeMap();
       // extraturnips.com/#rate opens straight into the submission form — the
-      // permalink pages' "Rate a Spot" button links here, and it is shareable.
+      // permalink pages' "Leave a Review" button links here, and it is shareable.
       if (location.hash === '#rate') {
         openModal();
         history.replaceState(null, '', location.pathname + location.search);

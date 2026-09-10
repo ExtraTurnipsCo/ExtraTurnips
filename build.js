@@ -295,8 +295,8 @@ const template = fs.readFileSync('public/index.html', 'utf8');
 const sharedStyle = (template.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
 
 const permalinkExtraCSS = `
-  .permalink-nav { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); }
-  .permalink-nav a { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
+  .permalink-nav { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .permalink-nav a:not(.rate-cta) { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
   .permalink-back { display: inline-block; margin-top: 2rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .permalink-back:hover { color: var(--accent); }
 `;
@@ -414,7 +414,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd 
 </head>
 <body>
   <div class="container tiers">
-    <div class="permalink-nav wide"><a href="/">Extra Turnips</a></div>
+    <div class="permalink-nav wide"><a href="/">Extra Turnips</a><a class="rate-cta" href="/#rate">+ Rate a Spot</a></div>
     <div class="page active tiers bleed" style="padding-top:2rem;">
       ${bodyHTML}
     </div>

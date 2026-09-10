@@ -86,10 +86,10 @@
     .container { display: grid; }
 
     /* ── Nav ── */
-    nav { padding: 1.75rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 0; }
+    nav { padding: 1.75rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0; }
     .nav-logo { font-family: var(--display); font-size: 1.5rem; font-weight: 600; color: var(--text); letter-spacing: -0.015em; cursor: pointer; display: flex; align-items: center; gap: 0.55rem; }
     .nav-logo img { height: 40px; width: auto; }
-    .nav-links { display: flex; gap: 1.6rem; list-style: none; }
+    .nav-links { display: flex; gap: 1.6rem; list-style: none; margin-left: auto; }
     .nav-links a {
       font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
       color: var(--muted); text-decoration: none; letter-spacing: 0.1em; cursor: pointer;
@@ -110,14 +110,19 @@
 
     /* ── Ratings controls ── */
     .ratings-controls { border-bottom: 1px solid var(--border); margin-bottom: 0; }
-    .tab-row { display: flex; align-items: center; justify-content: space-between; }
+    .tab-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0 1rem; }
     .tab-group { display: flex; }
     .tab-btn { font-family: var(--mono); font-size: 0.74rem; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.75rem 0; margin-right: 1.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
     .tab-btn:hover { color: var(--text); }
     .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
-    .submit-link { font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); cursor: pointer; border: 1px solid var(--border); border-radius: 20px; padding: 4px 12px; background: none; font-family: var(--body); transition: all 0.15s; display: none; }
-    .submit-link:hover { color: var(--text); border-color: var(--text); }
-    .submit-link.visible { display: inline-block; }
+
+    /* Community submissions are the one thing we want every visitor to do, so
+       this is the only solid, filled button in the site chrome — everything
+       else is outline or text. It sits in the nav on every page and again
+       above the ratings list, always visible regardless of the active tab. */
+    .rate-cta { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--body); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; white-space: nowrap; padding: 0.7rem 1.2rem; background: var(--accent); color: #fff; border: none; border-radius: 999px; cursor: pointer; text-decoration: none; box-shadow: 0 2px 8px rgba(176, 36, 96, 0.28); transition: background 0.15s, transform 0.15s, box-shadow 0.15s; }
+    .rate-cta:hover { background: #951D51; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(176, 36, 96, 0.38); }
+    .rate-cta:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
     .sort-row { display: flex; gap: 0.4rem; padding: 0.85rem 0; flex-wrap: wrap; }
     .sort-btn { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 13px; border: 1px solid var(--border); border-radius: 20px; background: none; color: var(--muted); cursor: pointer; transition: all 0.15s; }
@@ -400,6 +405,10 @@
       .nav-logo img { height: 32px; }
       .nav-links { gap: 1.05rem; }
       .nav-links a { font-size: 0.66rem; letter-spacing: 0.07em; }
+      /* Logo and the rate button share the first row; the links wrap below. */
+      nav .rate-cta { order: 2; font-size: 0.72rem; padding: 0.6rem 0.95rem; }
+      .nav-links { order: 3; width: 100%; margin-left: 0; }
+      .tab-row .rate-cta { margin: 0.35rem 0 0.75rem; }
 
       /* Eyebrow and link will not sit on one line at phone widths. */
       .map-band-head { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
@@ -434,6 +443,7 @@
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
         <li><a id="nav-about" onclick="show('about')">About</a></li>
       </ul>
+      <button class="rate-cta" onclick="openModal()">+ Rate a Spot</button>
     </nav>
 
     <!-- RATINGS -->
@@ -454,7 +464,7 @@
             <button class="tab-btn active" id="tab-ours" onclick="switchRatingTab('ours')">Austin & Jamie</button>
             <button class="tab-btn" id="tab-community" onclick="switchRatingTab('community')">Community</button>
           </div>
-          <button class="submit-link" id="submitLink" onclick="openModal()">+ Submit</button>
+          <button class="rate-cta" onclick="openModal()">+ Rate a Spot</button>
         </div>
         <div class="sort-row">
           <button class="sort-btn active" id="sort-total" onclick="setSort('total')">Total</button>
@@ -938,7 +948,6 @@
       document.getElementById('tab-community').classList.toggle('active', tab === 'community');
       document.getElementById('oursPanel').style.display = tab === 'ours' ? 'block' : 'none';
       document.getElementById('communityPanel').style.display = tab === 'community' ? 'block' : 'none';
-      document.getElementById('submitLink').classList.toggle('visible', tab === 'community');
     }
 
     // ── Page switching ──
@@ -1042,6 +1051,12 @@
     // band after the stylesheet and fonts have settled its height.
     window.addEventListener('load', () => {
       renderRatings(); renderCommunity(); renderBlog(); renderHomeMap();
+      // extraturnips.com/#rate opens straight into the submission form — the
+      // permalink pages' "Rate a Spot" button links here, and it is shareable.
+      if (location.hash === '#rate') {
+        openModal();
+        history.replaceState(null, '', location.pathname + location.search);
+      }
     });
   </script>
   __CF_BEACON__

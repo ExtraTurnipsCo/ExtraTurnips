@@ -40,6 +40,73 @@ function loadCollection(folder) {
 
 function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
 
+// ── Revisits ──
+// A second review of a place we have already rated (a revisit, or a community
+// submission for the same spot) is its own file with its own permalink. Left
+// ungrouped those two land far apart in a score-sorted list, stack invisibly on
+// top of each other on the map, and compete with each other in search results.
+// Grouping keys on name + street address, so the two branches of a chain stay
+// separate while "750 Spadina Ave" and "750 Spadina Avenue, Toronto" match.
+const STREET_WORDS = {
+  ave: 'avenue', av: 'avenue', st: 'street', rd: 'road', blvd: 'boulevard',
+  dr: 'drive', cres: 'crescent', ct: 'court', hwy: 'highway', pkwy: 'parkway',
+  e: 'east', w: 'west', n: 'north', s: 'south'
+};
+
+function normName(s) {
+  return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+// Only the part before the first comma is compared: everything after it is
+// city/province/postal text that the same address is written with or without.
+function normLocation(s) {
+  return String(s == null ? '' : s)
+    .toLowerCase()
+    .split(',')[0]
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(w => STREET_WORDS[w] || w)
+    .join(' ');
+}
+
+function restaurantKey(r) {
+  return `${normName(r.name)}|${normLocation(r.location)}`;
+}
+
+function scoreOf(r) { return Math.round(total(r) * 10) / 10; }
+
+// Collapses a list of ratings to one entry per restaurant: the newest review,
+// carrying `history` (the earlier ones, newest first). Each superseded review
+// gets `supersededBy` pointing the other way, so its permalink page can send
+// readers — and Google's canonical — to the current one.
+function groupByRestaurant(ratings) {
+  const groups = new Map();
+  for (const r of ratings) {
+    const key = restaurantKey(r);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+
+  const primaries = [];
+  for (const group of groups.values()) {
+    const [primary, ...earlier] = [...group].sort((a, b) => recencyMs(b) - recencyMs(a));
+    primary.history = earlier.map(r => ({ slug: r.slug, date: r.date, score: scoreOf(r) }));
+    earlier.forEach(r => {
+      r.supersededBy = { slug: primary.slug, date: primary.date, score: scoreOf(primary) };
+    });
+    primaries.push(primary);
+  }
+  return primaries;
+}
+
+// "3 visits · previously 74, 68" — the revisit summary shown on a card.
+function revisitSummary(r) {
+  const history = r.history || [];
+  if (!history.length) return '';
+  return `${history.length + 1} visits &middot; previously ${history.map(h => h.score).join(', ')}`;
+}
+
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;')
@@ -181,6 +248,7 @@ function homeCardHTML(r) {
             <div class="card-header-left">
               <div class="card-name"><a href="/ratings/${r.slug}.html" style="color:inherit;text-decoration:none;">${esc(r.name)}</a></div>
               <div class="card-meta">${esc(r.location)} &middot; ${esc(r.date)}${typeLabel ? ' &middot; ' + esc(typeLabel) : ''}</div>
+              ${r.history && r.history.length ? `<div class="card-revisits">${revisitSummary(r)}</div>` : ''}
             </div>
             <div class="card-header-right">
               <span class="card-score${isTop ? ' top' : ''}">${score} <span class="card-denom">/100</span></span>
@@ -188,6 +256,7 @@ function homeCardHTML(r) {
           </div>
           <div class="card-detail" style="padding-bottom:1rem;">
             ${r.submitter ? `<div class="community-submitter">Submitted by ${esc(r.submitter)}</div>` : ''}
+            ${r.history && r.history.length ? `<div class="card-history">Earlier ${r.history.length > 1 ? 'visits' : 'visit'}: ${r.history.map(h => `<a href="/ratings/${h.slug}.html">${esc(h.date)} &mdash; ${h.score}/100</a>`).join(', ')}</div>` : ''}
             <div class="card-note">${noteHTML}</div>
             ${photoHTML}
             <a class="card-permalink" href="/ratings/${r.slug}.html">Read full review &rarr;</a>
@@ -285,6 +354,10 @@ allRatings.forEach(r => {
 await summarizeAll(allRatings);
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
+// Grouped separately: the two tabs are separate lists, so our own revisit folds
+// into our card and a community re-review folds into theirs.
+const adminPrimary = groupByRestaurant(adminRatings);
+const communityPrimary = groupByRestaurant(communityRatings);
 const posts = loadCollection('content/posts');
 posts.forEach(p => {
   p.comments = loadCollection(`content/comments/${p.slug}`)
@@ -299,6 +372,13 @@ const permalinkExtraCSS = `
   .permalink-nav a:not(.rate-cta) { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
   .permalink-back { display: inline-block; margin-top: 2rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .permalink-back:hover { color: var(--accent); }
+  /* Shown at the top of a review we have since replaced with a newer visit. */
+  .revisit-banner { margin: 1.75rem 0 0; padding: 0.85rem 1rem; background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 3px; font-size: 0.86rem; color: var(--secondary); line-height: 1.6; }
+  .revisit-banner a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .revisit-banner a:hover { text-decoration: underline; }
+  .revisit-note { margin-top: 1.5rem; font-size: 0.82rem; color: var(--muted); }
+  .revisit-note a { color: var(--secondary); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .revisit-note a:hover { color: var(--text); border-color: var(--text); }
 `;
 
 function formatCommentDate(iso) {
@@ -387,7 +467,10 @@ function commentsSectionHTML(p) {
       </script>`;
 }
 
-function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd }) {
+// `canonicalUrl` differs from `url` only for a superseded review: that page
+// stays live and readable, but points Google at the current review instead of
+// competing with it.
+function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd, canonicalUrl }) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -396,7 +479,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd 
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(description)}" />
   ${jsonLd || ''}
-  <link rel="canonical" href="${url}" />
+  <link rel="canonical" href="${canonicalUrl || url}" />
   <meta property="og:type" content="${ogType}" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(description)}" />
@@ -432,7 +515,14 @@ function ratingPageHTML(r) {
   const url = `${SITE_URL}/ratings/${r.slug}.html`;
   const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
 
-  const bodyHTML = `
+  const supersededHTML = r.supersededBy ? `
+      <div class="revisit-banner">We went back to ${esc(r.name)} since writing this. <a href="/ratings/${r.supersededBy.slug}.html">Read the current review &mdash; ${r.supersededBy.score}/100 &rarr;</a></div>` : '';
+
+  const history = r.history || [];
+  const historyHTML = history.length ? `
+      <div class="revisit-note">Earlier ${history.length > 1 ? 'visits' : 'visit'}: ${history.map(h => `<a href="/ratings/${h.slug}.html">${esc(h.date)} &mdash; ${h.score}/100</a>`).join(', ')}</div>` : '';
+
+  const bodyHTML = `${supersededHTML}
       <div class="rating-card visible" style="cursor:default;border-top:1px solid var(--border);">
         <div class="card-header">
           <div class="card-header-left">
@@ -466,6 +556,7 @@ function ratingPageHTML(r) {
           ${photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : ''}
         </div>
       </div>
+      ${historyHTML}
       <a class="permalink-back" href="/">&larr; All ratings</a>
       ${commentsSectionHTML(r)}`;
 
@@ -474,6 +565,7 @@ function ratingPageHTML(r) {
     description,
     ogImage,
     url,
+    canonicalUrl: r.supersededBy ? `${SITE_URL}/ratings/${r.supersededBy.slug}.html` : url,
     ogType: 'article',
     bodyHTML,
     jsonLd: ratingJsonLd(r, { url, score, photos })
@@ -511,9 +603,9 @@ function postPageHTML(p) {
 // The SPA replaces these containers' innerHTML on load; sort here to match the
 // default client sort (by total score, descending).
 const byScore = (a, b) => total(b) - total(a);
-const ssrRatings = [...adminRatings].sort(byScore).map(homeCardHTML).join('');
-const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
-const ssrHero = heroHTML(pickFeatured(adminRatings));
+const ssrRatings = [...adminPrimary].sort(byScore).map(homeCardHTML).join('');
+const ssrCommunity = [...communityPrimary].sort(byScore).map(homeCardHTML).join('');
+const ssrHero = heroHTML(pickFeatured(adminPrimary));
 
 // Fills an empty container in the template with server-rendered markup,
 // keeping whatever attributes it carries. Matching the tag literally meant
@@ -529,8 +621,8 @@ function injectInto(html, id, content) {
 
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
 let output = template
-  .replace('__RATINGS_DATA__', () => JSON.stringify(adminRatings))
-  .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
+  .replace('__RATINGS_DATA__', () => JSON.stringify(adminPrimary))
+  .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityPrimary))
   .replace('__POSTS_DATA__', () => JSON.stringify(posts))
   .replace('__CF_BEACON__', () => cfBeacon)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
@@ -555,9 +647,12 @@ const newestDate = [...allRatings, ...posts]
   .filter(Boolean)
   .sort()
   .pop() || today;
+// Superseded reviews are left out: their pages still exist and stay reachable,
+// but they canonicalise to the current review, so listing both would put two
+// near-identical pages for one restaurant in front of Google.
 const sitemapUrls = [
   { loc: SITE_URL + '/', lastmod: newestDate },
-  ...allRatings.map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
+  ...[...adminPrimary, ...communityPrimary].map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
   ...posts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -567,7 +662,9 @@ ${sitemapUrls.map(u => `  <url><loc>${esc(u.loc)}</loc>${u.lastmod ? `<lastmod>$
 `;
 fs.writeFileSync('public/sitemap.xml', sitemap);
 
-console.log(`Built with ${adminRatings.length} ratings, ${communityRatings.length} community, ${posts.length} posts`);
+const revisitCount = allRatings.length - adminPrimary.length - communityPrimary.length;
+console.log(`Built with ${adminPrimary.length} ratings, ${communityPrimary.length} community, ${posts.length} posts`);
+if (revisitCount > 0) console.log(`Grouped ${revisitCount} revisit${revisitCount > 1 ? 's' : ''} into their current review`);
 console.log(`Generated ${allRatings.length} rating permalinks, ${posts.length} post permalinks`);
 console.log(`Generated sitemap.xml with ${sitemapUrls.length} URLs`);
 

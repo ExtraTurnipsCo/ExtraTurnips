@@ -41,10 +41,10 @@ function loadCollection(folder) {
 function total(r) { return (r.taste || 0) + (r.value || 0) + (r.experience || 0); }
 
 // ── Revisits ──
-// A second review of a place we have already rated (a revisit, or a community
-// submission for the same spot) is its own file with its own permalink. Left
-// ungrouped those two land far apart in a score-sorted list, stack invisibly on
-// top of each other on the map, and compete with each other in search results.
+// A return visit to a place we have already rated is its own file with its own
+// permalink. Left ungrouped those two land far apart in a score-sorted list,
+// stack invisibly on top of each other on the map, and compete with each other
+// in search results. Applied to our own ratings only — see the call site.
 // Grouping keys on name + street address, so the two branches of a chain stay
 // separate while "750 Spadina Ave" and "750 Spadina Avenue, Toronto" match.
 const STREET_WORDS = {
@@ -354,10 +354,10 @@ allRatings.forEach(r => {
 await summarizeAll(allRatings);
 const adminRatings = allRatings.filter(r => !r.submitter);
 const communityRatings = allRatings.filter(r => r.submitter);
-// Grouped separately: the two tabs are separate lists, so our own revisit folds
-// into our card and a community re-review folds into theirs.
+// Only our own ratings are grouped. The community tab stays one card per
+// submission on purpose: those are different people's opinions of a place,
+// which is not the same thing as us revising our own score on a return visit.
 const adminPrimary = groupByRestaurant(adminRatings);
-const communityPrimary = groupByRestaurant(communityRatings);
 const posts = loadCollection('content/posts');
 posts.forEach(p => {
   p.comments = loadCollection(`content/comments/${p.slug}`)
@@ -604,7 +604,7 @@ function postPageHTML(p) {
 // default client sort (by total score, descending).
 const byScore = (a, b) => total(b) - total(a);
 const ssrRatings = [...adminPrimary].sort(byScore).map(homeCardHTML).join('');
-const ssrCommunity = [...communityPrimary].sort(byScore).map(homeCardHTML).join('');
+const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrHero = heroHTML(pickFeatured(adminPrimary));
 
 // Fills an empty container in the template with server-rendered markup,
@@ -622,7 +622,7 @@ function injectInto(html, id, content) {
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
 let output = template
   .replace('__RATINGS_DATA__', () => JSON.stringify(adminPrimary))
-  .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityPrimary))
+  .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
   .replace('__POSTS_DATA__', () => JSON.stringify(posts))
   .replace('__CF_BEACON__', () => cfBeacon)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
@@ -652,7 +652,7 @@ const newestDate = [...allRatings, ...posts]
 // near-identical pages for one restaurant in front of Google.
 const sitemapUrls = [
   { loc: SITE_URL + '/', lastmod: newestDate },
-  ...[...adminPrimary, ...communityPrimary].map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
+  ...[...adminPrimary, ...communityRatings].map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
   ...posts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -662,8 +662,8 @@ ${sitemapUrls.map(u => `  <url><loc>${esc(u.loc)}</loc>${u.lastmod ? `<lastmod>$
 `;
 fs.writeFileSync('public/sitemap.xml', sitemap);
 
-const revisitCount = allRatings.length - adminPrimary.length - communityPrimary.length;
-console.log(`Built with ${adminPrimary.length} ratings, ${communityPrimary.length} community, ${posts.length} posts`);
+const revisitCount = adminRatings.length - adminPrimary.length;
+console.log(`Built with ${adminPrimary.length} ratings, ${communityRatings.length} community, ${posts.length} posts`);
 if (revisitCount > 0) console.log(`Grouped ${revisitCount} revisit${revisitCount > 1 ? 's' : ''} into their current review`);
 console.log(`Generated ${allRatings.length} rating permalinks, ${posts.length} post permalinks`);
 console.log(`Generated sitemap.xml with ${sitemapUrls.length} URLs`);

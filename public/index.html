@@ -315,6 +315,16 @@
     @media (min-width: 900px) {
       #mapContainer.bleed { height: 78vh; border-radius: 0; border-left: none; border-right: none; margin-top: 2rem; }
     }
+
+    /* Leaflet gives its panes z-index 400-1000 and only sets position:
+       relative on the container, which is not enough to keep them local --
+       with z-index:auto the container makes no stacking context, so the
+       tiles and markers escape into the root one and paint over the
+       submission modal (z-index 200). On a phone that is unmissable: the
+       lower "Leave a Review" button sits right under the map band, so the
+       map is filling the screen when you tap it and the form opens behind
+       it. An explicit z-index:0 confines every pane to the map's own box. */
+    #homeMapContainer, #mapContainer { position: relative; z-index: 0; }
     .leaflet-popup-content-wrapper { border-radius: 4px; }
     .leaflet-popup-content { font-family: var(--body); margin: 0.85rem 1rem; }
     .map-popup-name { font-family: var(--display); font-size: 0.98rem; color: var(--text); margin-bottom: 0.2rem; }

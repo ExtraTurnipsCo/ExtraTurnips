@@ -89,7 +89,7 @@
     nav { padding: 1.75rem 0 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1.6rem; border-bottom: 1px solid var(--border); margin-bottom: 0; }
     .nav-logo { font-family: var(--display); font-size: 1.5rem; font-weight: 600; color: var(--text); letter-spacing: -0.015em; cursor: pointer; display: flex; align-items: center; gap: 0.55rem; }
     .nav-logo img { height: 40px; width: auto; }
-    .nav-links { display: flex; gap: 1.6rem; list-style: none; margin-left: auto; }
+    .nav-links { display: flex; align-items: center; gap: 1.6rem; list-style: none; margin-left: auto; }
     .nav-links a {
       font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
       color: var(--muted); text-decoration: none; letter-spacing: 0.1em; cursor: pointer;
@@ -113,7 +113,7 @@
     .social a:hover { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
     .social a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .social svg { width: 16px; height: 16px; flex: none; }
-    .social-icons a { width: 36px; height: 36px; }
+    .social-icons a { width: 36px; height: 36px; padding: 0; }
     .social-pills a { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.5rem 0.9rem; }
 
     /* ── Pages ── */
@@ -433,9 +433,7 @@
       .nav-links a { font-size: 0.66rem; letter-spacing: 0.07em; }
       /* Logo and the rate button share the first row; the links wrap below. */
       nav .rate-cta { order: 2; font-size: 0.72rem; padding: 0.6rem 0.95rem; }
-      .nav-links { order: 3; flex: 1; margin-left: 0; }
-      /* Icons ride at the end of the wrapped links row, not the crowded first row. */
-      nav .social-icons { order: 4; }
+      .nav-links { order: 3; width: 100%; margin-left: 0; }
       .social-icons a { width: 32px; height: 32px; }
       .tab-row .rate-cta { margin: 0.35rem 0 0.75rem; }
 
@@ -475,10 +473,10 @@
         <li><a id="nav-map" onclick="show('map')">Map</a></li>
         <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
         <li><a id="nav-about" onclick="show('about')">About</a></li>
+        <li class="social social-icons">
+          <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
+        </li>
       </ul>
-      <div class="social social-icons">
-        <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
-      </div>
       <button class="rate-cta" onclick="openModal()">+ Leave a Review</button>
     </nav>
 

@@ -25,4 +25,11 @@ note: >-
 taste: 41
 value: 16
 experience: 20
+photos:
+  - >-
+    https://res.cloudinary.com/dk5zuikbf/image/upload/v1790351573/dvirwe3mzdwwdisbnyge.jpg
+  - >-
+    https://res.cloudinary.com/dk5zuikbf/image/upload/v1790351585/kphnk6h2edbbrk2efcrc.jpg
+  - >-
+    https://res.cloudinary.com/dk5zuikbf/image/upload/v1790351588/f3jhkr2fqpw0jdgri13i.jpg
 ---

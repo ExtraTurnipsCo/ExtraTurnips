@@ -222,7 +222,7 @@ function homeJsonLd() {
         name: 'Extra Turnips',
         url: `${SITE_URL}/`,
         logo: `${SITE_URL}/ExtraTurnipsLogo.png`,
-        sameAs: ['https://www.instagram.com/ExtraTurnips']
+        sameAs: ['https://www.instagram.com/ExtraTurnips', 'https://www.tiktok.com/@extra.turnips']
       }
     ]
   });

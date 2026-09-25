@@ -384,8 +384,12 @@
     .about-section p { font-size: 0.95rem; color: var(--secondary); line-height: 1.85; margin-bottom: 1.1rem; }
     .about-founders { margin-bottom: 2.5rem; }
     .about-founders-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
-    .about-founders-head a { font-size: 0.78rem; color: var(--muted); text-decoration: none; letter-spacing: 0.04em; transition: color 0.15s; }
-    .about-founders-head a:hover { color: var(--text); }
+    .about-founders-head .social-links { font-size: 0.78rem; }
+
+    /* Instagram + TikTok, shown together wherever we link out */
+    .social-links { display: inline-flex; gap: 0.9em; letter-spacing: 0.04em; }
+    .social-links a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    .social-links a:hover { color: var(--text); }
     .about-founders img { width: 100%; border-radius: 4px; display: block; }
 
     /* ── Modal ── */
@@ -487,7 +491,10 @@
           <button class="sort-btn" id="sort-taste" onclick="setSort('taste')">Taste</button>
           <button class="sort-btn" id="sort-value" onclick="setSort('value')">Value</button>
           <button class="sort-btn" id="sort-experience" onclick="setSort('experience')">Experience</button>
-          <a href="https://www.instagram.com/ExtraTurnips" target="_blank" style="margin-left:auto;font-size:0.7rem;letter-spacing:0.04em;color:var(--muted);text-decoration:none;align-self:center;transition:color 0.15s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">@ExtraTurnips</a>
+          <span class="social-links" style="margin-left:auto;align-self:center;font-size:0.7rem;">
+            <a href="https://www.instagram.com/ExtraTurnips" target="_blank" rel="noopener">Instagram</a>
+            <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener">TikTok</a>
+          </span>
         </div>
       </div>
 
@@ -535,7 +542,10 @@
         <div class="about-founders">
           <div class="about-founders-head">
             <h2>The Founders</h2>
-            <a href="https://www.instagram.com/ExtraTurnips" target="_blank">@ExtraTurnips</a>
+            <span class="social-links">
+              <a href="https://www.instagram.com/ExtraTurnips" target="_blank" rel="noopener">Instagram</a>
+              <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener">TikTok</a>
+            </span>
           </div>
           <img src="FOUNDERS_PHOTO.jpg" alt="Austin and Jamie" />
         </div>
@@ -549,6 +559,10 @@
 
     <footer class="wide">
       <span>Extra Turnips &copy; 2026</span>
+      <span class="social-links">
+        <a href="https://www.instagram.com/ExtraTurnips" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener">TikTok</a>
+      </span>
       <span>Toronto Shawarma Scene Investigation</span>
     </footer>
   </div>

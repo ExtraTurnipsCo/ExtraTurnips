@@ -366,10 +366,11 @@ posts.forEach(p => {
 
 const template = fs.readFileSync('public/index.html', 'utf8');
 const sharedStyle = (template.match(/<style>([\s\S]*?)<\/style>/) || [, ''])[1];
+// The social icon sprite the nav's <use href="#ico-..."> points at.
+const iconSprite = (template.match(/<svg width="0" height="0"[\s\S]*?<\/svg>/) || [''])[0];
 
 const permalinkExtraCSS = `
-  .permalink-nav { padding: 1.75rem 0 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-  .permalink-nav a:not(.rate-cta) { font-family: var(--display); font-weight: 600; font-size: 1.5rem; letter-spacing: -0.015em; color: var(--text); text-decoration: none; }
+  a.nav-logo { text-decoration: none; }
   .permalink-back { display: inline-block; margin-top: 2rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
   .permalink-back:hover { color: var(--accent); }
   /* Shown at the top of a review we have since replaced with a newer visit. */
@@ -470,7 +471,11 @@ function commentsSectionHTML(p) {
 // `canonicalUrl` differs from `url` only for a superseded review: that page
 // stays live and readable, but points Google at the current review instead of
 // competing with it.
-function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd, canonicalUrl }) {
+function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd, canonicalUrl, activeNav = 'ratings' }) {
+  // Same nav as the homepage, but as real links: the homepage reads the hash
+  // on load and opens that tab.
+  const navLink = (id, label) =>
+    `<li><a href="/${id === 'ratings' ? '' : '#' + id}"${id === activeNav ? ' class="active"' : ''}>${label}</a></li>`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -496,8 +501,24 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd,
   <style>${sharedStyle}${permalinkExtraCSS}</style>
 </head>
 <body>
+  ${iconSprite}
   <div class="container tiers">
-    <div class="permalink-nav wide"><a href="/">Extra Turnips</a><a class="rate-cta" href="/#rate">+ Leave a Review</a></div>
+    <nav class="wide">
+      <a class="nav-logo" href="/">
+        <img src="/ExtraTurnipsLogo.png" alt="Extra Turnips" />
+        Extra Turnips
+      </a>
+      <ul class="nav-links">
+        ${navLink('ratings', 'Ratings')}
+        ${navLink('map', 'Map')}
+        ${navLink('blog', 'Blog')}
+        ${navLink('about', 'About')}
+        <li class="social social-icons">
+          <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
+        </li>
+      </ul>
+      <a class="rate-cta" href="/#rate">+ Leave a Review</a>
+    </nav>
     <div class="page active tiers bleed" style="padding-top:2rem;">
       ${bodyHTML}
     </div>
@@ -584,12 +605,13 @@ function postPageHTML(p) {
         <h1>${esc(p.title)}</h1>
         <div class="post-meta">${esc(p.date)} &middot; ${esc(p.read)} <span class="post-tag">${esc(p.tag)}</span></div>
         ${paragraphs.map(par => `<p>${esc(par)}</p>`).join('\n        ')}
-        <a class="permalink-back" href="/">&larr; Back to blog</a>
+        <a class="permalink-back" href="/#blog">&larr; Back to blog</a>
       </div>
       ${commentsSectionHTML(p)}`;
 
   return pageShell({
     title: `${p.title} — Extra Turnips`,
+    activeNav: 'blog',
     description,
     ogImage,
     url,

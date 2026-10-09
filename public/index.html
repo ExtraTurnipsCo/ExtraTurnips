@@ -1093,10 +1093,13 @@
       renderRatings(); renderCommunity(); renderBlog(); renderHomeMap();
       // extraturnips.com/#rate opens straight into the submission form — the
       // permalink pages' "Leave a Review" button links here, and it is shareable.
-      if (location.hash === '#rate') {
-        openModal();
-        history.replaceState(null, '', location.pathname + location.search);
-      }
+      // #map, #blog and #about open that tab; the permalink pages' nav links
+      // here the same way.
+      const hash = location.hash.slice(1);
+      if (hash === 'rate') openModal();
+      else if (['map', 'blog', 'about'].includes(hash)) show(hash);
+      else return;
+      history.replaceState(null, '', location.pathname + location.search);
     });
   </script>
   __CF_BEACON__

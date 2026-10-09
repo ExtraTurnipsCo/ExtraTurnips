@@ -143,6 +143,13 @@ function entryDate(x) {
   return m ? new Date(Number(m[1])).toISOString().slice(0, 10) : null;
 }
 
+// Review photos are full-size phone uploads on Cloudinary. Ask it for a copy no
+// wider than the slot needs, in the best format the browser takes. Structured
+// data and og:image keep the original.
+function sized(src, w) {
+  return String(src).replace(/(res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?!f_auto)/, `$1f_auto,q_auto,c_limit,w_${w}/`);
+}
+
 // Serialize a schema.org object into a JSON-LD script tag. Escaping "<" keeps
 // review text or titles containing "</script>" from breaking out of the tag.
 function jsonLdScript(obj) {
@@ -240,7 +247,7 @@ function homeCardHTML(r) {
     ? `<ul class="card-summary">${points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>`
     : `<p>${esc(truncate(r.note, 220))}</p>`;
   const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
-  const photoHTML = photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : '';
+  const photoHTML = photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(sized(src, 1000))}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : '';
   return `
         <div class="rating-card">
           <div class="card-header">
@@ -325,7 +332,7 @@ function heroHTML(r) {
       <a class="featured-hero" href="${url}" aria-label="Read our review of ${esc(r.name)}">
         <div class="featured-eyebrow">${label}</div>
         <div class="featured-media">
-          <img src="${esc(photo)}" alt="Shawarma at ${esc(r.name)}, Toronto" />
+          <img src="${esc(sized(photo, 1200))}" alt="Shawarma at ${esc(r.name)}, Toronto" />
           <div class="featured-scrim"></div>
           <div class="featured-overlay">
             <div class="featured-overlay-text">
@@ -573,7 +580,7 @@ function ratingPageHTML(r) {
               <span class="subscore-val">${r.experience}</span>
             </div>
           </div>
-          ${photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(src)}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : ''}
+          ${photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(sized(src, 1000))}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : ''}
         </div>
       </div>
       ${historyHTML}

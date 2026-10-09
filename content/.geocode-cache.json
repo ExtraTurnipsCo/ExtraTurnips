@@ -1,14 +1,256 @@
 {
-  "2900 Steeles Ave E": { "lat": 43.812943, "lng": -79.3594632 },
-  "21 Davisville Avenue": { "lat": 43.6981775, "lng": -79.3957215 },
-  "Haarlem, Netherlands - Farmers market": { "lat": 52.3885317, "lng": 4.6388048 },
-  "950 Bloor St W": { "lat": 43.6615172, "lng": -79.4283555 },
-  "1807 Eglinton Avenue West": { "lat": 43.6957445, "lng": -79.4491979 },
-  "1103-145 Silver Reign Dr Toronto, ON M9W 3W4 Canada": { "lat": 43.71244, "lng": -79.55685 },
-  "505 St Clair Avenue West": { "lat": 43.6829205, "lng": -79.4184926 },
-  "7605 Woodbine Avenue #3": { "lat": 43.828958, "lng": -79.3510238 },
-  "656 Spadina Ave": { "lat": 43.6633466, "lng": -79.4025124 },
-  "401 E 57th St, New York, NY": { "lat": 40.7584479, "lng": -73.9626027 },
-  "Nørre Voldgade 90, 1358 København": { "lat": 55.683538, "lng": 12.572836 },
-  "Stockholm": { "lat": 59.3251172, "lng": 18.0710935 }
+  "2900 Steeles Ave E": {
+    "lat": 43.812943,
+    "lng": -79.3594632,
+    "city": "Markham",
+    "region": "ON",
+    "country": "CA"
+  },
+  "21 Davisville Avenue": {
+    "lat": 43.6981775,
+    "lng": -79.3957215,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "Haarlem, Netherlands - Farmers market": {
+    "lat": 52.3885317,
+    "lng": 4.6388048,
+    "city": "Haarlem",
+    "region": "North Holland",
+    "country": "NL"
+  },
+  "950 Bloor St W": {
+    "lat": 43.6615172,
+    "lng": -79.4283555,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "1807 Eglinton Avenue West": {
+    "lat": 43.6957445,
+    "lng": -79.4491979,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "1103-145 Silver Reign Dr Toronto, ON M9W 3W4 Canada": {
+    "lat": 43.71244,
+    "lng": -79.55685,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "505 St Clair Avenue West": {
+    "lat": 43.6829205,
+    "lng": -79.4184926,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "7605 Woodbine Avenue #3": {
+    "lat": 43.828958,
+    "lng": -79.3510238,
+    "city": "Markham",
+    "region": "ON",
+    "country": "CA"
+  },
+  "656 Spadina Ave": {
+    "lat": 43.6633466,
+    "lng": -79.4025124,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "401 E 57th St, New York, NY": {
+    "lat": 40.7584479,
+    "lng": -73.9626027,
+    "city": "New York",
+    "region": "NY",
+    "country": "US"
+  },
+  "Nørre Voldgade 90, 1358 København": {
+    "lat": 55.683538,
+    "lng": 12.572836,
+    "city": "Copenhagen",
+    "region": "Capital Region of Denmark",
+    "country": "DK"
+  },
+  "Stockholm": {
+    "lat": 59.3251172,
+    "lng": 18.0710935,
+    "city": "Stockholm",
+    "region": "",
+    "country": "SE"
+  },
+  "998 queen street west": {
+    "lat": 43.6443904,
+    "lng": -79.4185745,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "245 yonge": {
+    "lat": 43.65488,
+    "lng": -79.37993,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "565 king street west, Toronto ": {
+    "lat": 43.64437,
+    "lng": -79.39935,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "673 Yonge St, Toronto": {
+    "lat": 43.6685564,
+    "lng": -79.3858925,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "Ferenc körút 25, district IX (1094 Budapest).": {
+    "lat": 47.4831096,
+    "lng": 19.0692062,
+    "city": "Budapest",
+    "region": "",
+    "country": "HU"
+  },
+  "No idea ": null,
+  "1848 Lawrence Ave E, Scarborough, ON M1R 2Y4": {
+    "lat": 43.74377,
+    "lng": -79.30416,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "4 Walmer road, Toronto ": {
+    "lat": 43.6665666,
+    "lng": -79.4058186,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "66 Bridgeport Road, Waterloo": {
+    "lat": 43.4691641,
+    "lng": -80.5162723,
+    "city": "Waterloo",
+    "region": "ON",
+    "country": "CA"
+  },
+  "10520 Yonge St Unit 38b, Richmond Hill": null,
+  "7423 Hwy 26, Stayner": {
+    "lat": 44.420011,
+    "lng": -80.0965242,
+    "city": "Clearview",
+    "region": "ON",
+    "country": "CA"
+  },
+  "750 Spadina Ave": {
+    "lat": 43.6662039,
+    "lng": -79.404189,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  " Λογαράς, Παρος 844 00": {
+    "lat": 37.0324307,
+    "lng": 25.2545794,
+    "city": "Paros Municipality",
+    "region": "South Aegean",
+    "country": "GR"
+  },
+  "17 Knightsbridge Green, London": {
+    "lat": 51.5011368,
+    "lng": -0.1623111,
+    "city": "London",
+    "region": "England",
+    "country": "GB"
+  },
+  "3277 Dufferin St, Toronto": {
+    "lat": 43.72123,
+    "lng": -79.45583,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "279 Battersea Park Rd, London": {
+    "lat": 51.4745728,
+    "lng": -0.1530499,
+    "city": "London",
+    "region": "England",
+    "country": "GB"
+  },
+  "1440 Yonge St": {
+    "lat": 43.68734,
+    "lng": -79.39403,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "102 Gerrard St E": {
+    "lat": 43.6603282,
+    "lng": -79.3769769,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "Bayerstraße 15, 80335 München": {
+    "lat": 48.1392497,
+    "lng": 11.5621522,
+    "city": "Munich",
+    "region": "Bavaria",
+    "country": "DE"
+  },
+  "98a North End Rd, London": {
+    "lat": 51.4906908,
+    "lng": -0.2067652,
+    "city": "London",
+    "region": "England",
+    "country": "GB"
+  },
+  "2209 Bloor St W, Toronto": {
+    "lat": 43.6510934,
+    "lng": -79.4758158,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "1823 Lawrence Ave E, Scarborough": {
+    "lat": 43.7430662,
+    "lng": -79.3034399,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "94b Lakeshore Rd E, Mississauga, ON L5G 1E3": {
+    "lat": 43.564779,
+    "lng": -79.5716149,
+    "city": "Mississauga",
+    "region": "ON",
+    "country": "CA"
+  },
+  "3000 Highway 7, Markham": {
+    "lat": 43.8504519,
+    "lng": -79.3576598,
+    "city": "Markham",
+    "region": "ON",
+    "country": "CA"
+  },
+  "1961 Lawrence Ave E, Scarborough": {
+    "lat": 43.7445451,
+    "lng": -79.2977653,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  },
+  "449 Danforth Ave, Toronto": {
+    "lat": 43.6776913,
+    "lng": -79.3504246,
+    "city": "Toronto",
+    "region": "ON",
+    "country": "CA"
+  }
 }

@@ -104,8 +104,39 @@ async function geocodeLocation(location) {
   return coords;
 }
 
+async function fetchReverse(coords, zoom) {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&accept-language=en&zoom=${zoom}&lat=${coords.lat}&lon=${coords.lng}`;
+  const res = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+  if (!res.ok) return null;
+  return (await res.json()).address || null;
+}
+
+// Looks up which city, region and country a coordinate is in, so the review's
+// structured data names the real place instead of assuming Toronto. Zoom 8
+// answers with the metro ("Toronto" for Scarborough, "Greater London" for a
+// borough); where that level has no city (Markham, Budapest), zoom 10 does.
+async function reversePlace(coords) {
+  let addr = await fetchReverse(coords, 8);
+  if (!addr) return null;
+  let city = addr.city;
+  if (!city) {
+    await sleep(1100);
+    const fine = await fetchReverse(coords, 10);
+    if (fine) addr = fine;
+    city = addr.city || addr.town || addr.village || addr.municipality || addr.county;
+  }
+  // Canada and the US write the region as a code (ON, NY); elsewhere the name.
+  const iso = addr['ISO3166-2-lvl4'] || '';
+  const country = (addr.country_code || '').toUpperCase();
+  return {
+    city: (city || '').replace(/^Greater /, ''),
+    region: (country === 'CA' || country === 'US') && iso ? iso.split('-')[1] : (addr.state || ''),
+    country
+  };
+}
+
 // Geocodes any rating locations missing from the cache and returns the full
-// location -> {lat,lng}|null map. Nominatim's usage policy caps requests at
+// location -> {lat,lng,city,region,country}|null map. Nominatim's usage policy caps requests at
 // 1/sec, so lookups are done serially with a delay and persisted after each
 // one, so an interrupted build doesn't lose progress or re-query on retry.
 async function geocodeAll(ratings) {
@@ -116,6 +147,18 @@ async function geocodeAll(ratings) {
     console.log(`Geocoding: ${r.location}`);
     cache[r.location] = await geocodeLocation(r.location);
     saveCache(cache);
+    await sleep(1100);
+  }
+
+  // Entries cached before place lookups existed only hold coordinates.
+  for (const [location, entry] of Object.entries(cache)) {
+    if (!entry || entry.country !== undefined) continue;
+    const place = await reversePlace(entry);
+    if (place) {
+      console.log(`Located: ${location} -> ${place.city}, ${place.country}`);
+      Object.assign(entry, place);
+      saveCache(cache);
+    }
     await sleep(1100);
   }
 

@@ -155,13 +155,12 @@ function jsonLdScript(obj) {
 function ratingJsonLd(r, { url, score, photos }) {
   const restaurant = { '@type': 'Restaurant', name: r.name, servesCuisine: 'Shawarma' };
   if (r.location) {
-    restaurant.address = {
-      '@type': 'PostalAddress',
-      streetAddress: r.location,
-      addressLocality: 'Toronto',
-      addressRegion: 'ON',
-      addressCountry: 'CA'
-    };
+    // City, region and country come from the geocoder; a spot it could not
+    // place gets the street line alone rather than a guessed city.
+    restaurant.address = { '@type': 'PostalAddress', streetAddress: r.location };
+    if (r.city) restaurant.address.addressLocality = r.city;
+    if (r.region) restaurant.address.addressRegion = r.region;
+    if (r.country) restaurant.address.addressCountry = r.country;
   }
   if (r.lat != null && r.lng != null) {
     restaurant.geo = { '@type': 'GeoCoordinates', latitude: r.lat, longitude: r.lng };
@@ -347,7 +346,7 @@ const allRatings = loadCollection('content/ratings');
 const geoCache = await geocodeAll(allRatings);
 allRatings.forEach(r => {
   const coords = r.location ? geoCache[r.location] : null;
-  if (coords) { r.lat = coords.lat; r.lng = coords.lng; }
+  if (coords) { r.lat = coords.lat; r.lng = coords.lng; r.city = coords.city; r.region = coords.region; r.country = coords.country; }
   r.comments = loadCollection(`content/comments/${r.slug}`)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 });

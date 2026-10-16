@@ -513,7 +513,6 @@
       <ul class="nav-links">
         <li><a id="nav-ratings" onclick="show('ratings')" class="active">Ratings</a></li>
         <li><a id="nav-map" onclick="show('map')">Map</a></li>
-        <li><a id="nav-blog" onclick="show('blog')">Blog</a></li>
         <li><a id="nav-about" onclick="show('about')">About</a></li>
         <li class="social social-icons">
           <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
@@ -1141,11 +1140,11 @@
       renderRatings(); renderCommunity(); renderBlog(); renderHomeMap();
       // extraturnips.com/#rate opens straight into the submission form — the
       // permalink pages' "Leave a Review" button links here, and it is shareable.
-      // #map, #blog and #about open that tab; the permalink pages' nav links
-      // here the same way.
+      // #map and #about open that tab; the permalink pages' nav links here the
+      // same way. (The blog is hidden for now, so #blog is deliberately absent.)
       const hash = location.hash.slice(1);
       if (hash === 'rate') openModal();
-      else if (['map', 'blog', 'about'].includes(hash)) show(hash);
+      else if (['map', 'about'].includes(hash)) show(hash);
       else return;
       history.replaceState(null, '', location.pathname + location.search);
     });

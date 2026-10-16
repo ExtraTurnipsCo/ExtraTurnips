@@ -517,7 +517,6 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd,
       <ul class="nav-links">
         ${navLink('ratings', 'Ratings')}
         ${navLink('map', 'Map')}
-        ${navLink('blog', 'Blog')}
         ${navLink('about', 'About')}
         <li class="social social-icons">
           <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
@@ -647,11 +646,17 @@ function injectInto(html, id, content) {
   return html.replace(re, (_, openTag) => `${openTag}${content}</div>`);
 }
 
+// The blog is hidden for now: posts stay in content/posts and are readable only
+// from the passcode-locked admin page (via the admin function's list-posts), so
+// nothing about them is published — no homepage data, permalinks or sitemap URLs.
+// To bring the blog back, restore `posts` in these spots and the Blog nav links.
+const publishedPosts = [];
+
 // Function replacements below so `$` in JSON/HTML isn't treated as a $-pattern.
 let output = template
   .replace('__RATINGS_DATA__', () => JSON.stringify(adminPrimary))
   .replace('__COMMUNITY_DATA__', () => JSON.stringify(communityRatings))
-  .replace('__POSTS_DATA__', () => JSON.stringify(posts))
+  .replace('__POSTS_DATA__', () => JSON.stringify(publishedPosts))
   .replace('__CF_BEACON__', () => cfBeacon)
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
 
@@ -666,11 +671,11 @@ for (const dir of ['public/ratings', 'public/posts']) {
   fs.mkdirSync(dir, { recursive: true });
 }
 allRatings.forEach(r => fs.writeFileSync(path.join('public/ratings', `${r.slug}.html`), ratingPageHTML(r)));
-posts.forEach(p => fs.writeFileSync(path.join('public/posts', `${p.slug}.html`), postPageHTML(p)));
+publishedPosts.forEach(p => fs.writeFileSync(path.join('public/posts', `${p.slug}.html`), postPageHTML(p)));
 
 const today = new Date().toISOString().slice(0, 10);
 // Homepage changes whenever any rating/post does, so stamp it with the newest.
-const newestDate = [...allRatings, ...posts]
+const newestDate = [...allRatings, ...publishedPosts]
   .map(x => entryDate(x))
   .filter(Boolean)
   .sort()
@@ -681,7 +686,7 @@ const newestDate = [...allRatings, ...posts]
 const sitemapUrls = [
   { loc: SITE_URL + '/', lastmod: newestDate },
   ...[...adminPrimary, ...communityRatings].map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
-  ...posts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
+  ...publishedPosts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
 ];
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -691,9 +696,9 @@ ${sitemapUrls.map(u => `  <url><loc>${esc(u.loc)}</loc>${u.lastmod ? `<lastmod>$
 fs.writeFileSync('public/sitemap.xml', sitemap);
 
 const revisitCount = adminRatings.length - adminPrimary.length;
-console.log(`Built with ${adminPrimary.length} ratings, ${communityRatings.length} community, ${posts.length} posts`);
+console.log(`Built with ${adminPrimary.length} ratings, ${communityRatings.length} community, ${posts.length} posts (hidden, admin only)`);
 if (revisitCount > 0) console.log(`Grouped ${revisitCount} revisit${revisitCount > 1 ? 's' : ''} into their current review`);
-console.log(`Generated ${allRatings.length} rating permalinks, ${posts.length} post permalinks`);
+console.log(`Generated ${allRatings.length} rating permalinks, ${publishedPosts.length} post permalinks`);
 console.log(`Generated sitemap.xml with ${sitemapUrls.length} URLs`);
 
 }

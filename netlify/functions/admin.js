@@ -65,7 +65,7 @@ async function githubListDir(path, branch) {
 }
 
 function parseFrontmatter(text) {
-  const match = text.match(/^---\n([\s\S]*?)\n---/);
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   return match ? (yaml.load(match[1]) || {}) : {};
 }
 
@@ -79,6 +79,31 @@ async function listRatings(branch) {
   }));
   ratings.sort((a, b) => String(a.name).localeCompare(String(b.name)));
   return ratings;
+}
+
+// Sort key for a post: its frontmatter date, else the epoch-ms suffix that
+// admin-created post filenames carry, else 0 (oldest).
+function postTime(p) {
+  const t = Date.parse(p.date);
+  if (!isNaN(t)) return t;
+  const m = String(p.path).match(/-(\d{12,})\.md$/);
+  return m ? Number(m[1]) : 0;
+}
+
+// The blog is hidden from the public site, so the admin page reads posts from
+// here (behind the password) instead of from the built pages.
+async function listPosts(branch) {
+  const items = await githubListDir('content/posts', branch);
+  const files = items.filter(i => i.type === 'file' && i.name.endsWith('.md'));
+  const posts = await Promise.all(files.map(async f => {
+    const res = await fetch(f.download_url);
+    const text = await res.text();
+    const fm = parseFrontmatter(text);
+    const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trim();
+    return { ...fm, body: fm.post || body, path: f.path };
+  }));
+  posts.sort((a, b) => postTime(b) - postTime(a));
+  return posts;
 }
 
 async function getSubmissions() {
@@ -144,6 +169,10 @@ exports.handler = async function(event) {
       if (action === 'list-ratings') {
         const ratings = await listRatings(branch);
         return { statusCode: 200, headers: CORS, body: JSON.stringify(ratings) };
+      }
+      if (action === 'list-posts') {
+        const posts = await listPosts(branch);
+        return { statusCode: 200, headers: CORS, body: JSON.stringify(posts) };
       }
       const submissions = await getSubmissions();
       return { statusCode: 200, headers: CORS, body: JSON.stringify(submissions) };

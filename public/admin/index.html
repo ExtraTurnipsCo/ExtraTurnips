@@ -106,6 +106,7 @@
       <button class="tab-btn" id="tab-post" onclick="switchTab('post')">Add Post</button>
       <button class="tab-btn" id="tab-pending" onclick="switchTab('pending')">Pending</button>
       <button class="tab-btn" id="tab-edit" onclick="switchTab('edit')">Edit Review</button>
+      <button class="tab-btn" id="tab-posts" onclick="switchTab('posts')">Blog Posts</button>
     </div>
 
     <div class="tab-panel active" id="panel-rating">
@@ -200,6 +201,11 @@
       <input type="text" id="editSearch" placeholder="Search by name or location..." oninput="renderEditList()" style="width:100%;font-family:'DM Sans',sans-serif;font-size:0.9rem;font-weight:300;background:transparent;border:1px solid var(--border);border-radius:3px;padding:0.5rem 0.75rem;color:var(--text-primary);outline:none;margin-bottom:1.5rem;" />
       <div id="editList"><p class="pending-empty">Loading...</p></div>
     </div>
+
+    <div class="tab-panel" id="panel-posts">
+      <p class="section-label">Blog Posts (hidden from the public site)</p>
+      <div id="postsList"><p class="pending-empty">Loading...</p></div>
+    </div>
   </div>
 </div>
 
@@ -262,11 +268,52 @@
   document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
 
   function switchTab(name) {
-    ['rating','post','pending','edit'].forEach(t => {
+    ['rating','post','pending','edit','posts'].forEach(t => {
       document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
       document.getElementById(`panel-${t}`).classList.toggle('active', t === name);
     });
     if (name === 'edit' && !allRatingsCache.length) loadRatingsList();
+    if (name === 'posts' && !postsLoaded) loadPosts();
+  }
+
+  // The blog is hidden from the public site; posts are read here via the
+  // password-checked admin function instead.
+  let postsLoaded = false;
+
+  async function loadPosts() {
+    const list = document.getElementById('postsList');
+    try {
+      const posts = await api('GET', null, 'list-posts');
+      postsLoaded = true;
+      if (!posts.length) { list.innerHTML = '<p class="pending-empty">No posts yet.</p>'; return; }
+      list.innerHTML = posts.map((p, i) => buildPostCard(p, i)).join('');
+    } catch(err) {
+      list.innerHTML = `<p class="pending-empty" style="color:var(--red)">Failed to load: ${esc(err.message)}</p>`;
+    }
+  }
+
+  function buildPostCard(p, i) {
+    const paragraphs = String(p.body || '').split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+    return `<div class="sub-card">
+      <div class="sub-card-top">
+        <span class="sub-name">${esc(p.title)}</span>
+      </div>
+      <div class="sub-meta">${esc(p.date)} &middot; ${esc(p.read)} &middot; ${esc(p.tag)}</div>
+      <p class="sub-note">${esc(p.preamble)}</p>
+      <div id="post-body-${i}" style="display:none;">
+        ${paragraphs.map(par => `<p class="sub-note">${esc(par)}</p>`).join('')}
+      </div>
+      <div class="sub-actions">
+        <button class="btn-cancel" onclick="togglePost(${i}, this)">Read</button>
+      </div>
+    </div>`;
+  }
+
+  function togglePost(i, btn) {
+    const body = document.getElementById(`post-body-${i}`);
+    const open = body.style.display === 'none';
+    body.style.display = open ? 'block' : 'none';
+    btn.textContent = open ? 'Hide' : 'Read';
   }
 
   async function api(method, body, action) {

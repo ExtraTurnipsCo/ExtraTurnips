@@ -7,3 +7,10 @@
 
 [functions]
   directory = "netlify/functions"
+
+# The blog is hidden for now (posts live behind /admin), so send old post
+# links to the homepage instead of a 404. Remove this to restore the blog.
+[[redirects]]
+  from = "/posts/*"
+  to = "/"
+  status = 302

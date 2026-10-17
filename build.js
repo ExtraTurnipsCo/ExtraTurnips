@@ -228,7 +228,7 @@ function homeJsonLd() {
         name: 'Extra Turnips',
         url: `${SITE_URL}/`,
         logo: `${SITE_URL}/ExtraTurnipsLogo.png`,
-        sameAs: ['https://www.instagram.com/ExtraTurnips', 'https://www.tiktok.com/@extra.turnips']
+        sameAs: ['https://www.instagram.com/ExtraTurnips', 'https://www.tiktok.com/@extra.turnips', 'https://www.youtube.com/@ExtraTurnipsCo']
       }
     ]
   });
@@ -580,6 +580,7 @@ function ratingPageHTML(r) {
             </div>
           </div>
           ${photos.length ? `<div class="photo-strip${photos.length === 1 ? ' single' : ''}">${photos.map(src => `<img src="${esc(sized(src, 1000))}" alt="Shawarma at ${esc(r.name)}, Toronto" loading="lazy" />`).join('')}</div>${photos.length > 1 ? `<div class="photo-hint">${photos.length} photos</div>` : ''}` : ''}
+          ${r.video ? `<a class="card-video" href="${esc(r.video)}" target="_blank" rel="noopener">&#x25B6; Watch on YouTube &#x2197;</a>` : ''}
         </div>
       </div>
       ${historyHTML}

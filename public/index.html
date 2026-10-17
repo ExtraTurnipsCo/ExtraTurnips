@@ -185,6 +185,8 @@
     .post-tag { display: inline-block; font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.07em; text-transform: uppercase; background: var(--surface); color: var(--secondary); padding: 3px 9px; border-radius: 20px; }
     .card-permalink { display: inline-block; margin-top: 0.85rem; font-size: 0.68rem; letter-spacing: 0.05em; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .card-permalink:hover { color: var(--text); border-color: var(--text); }
+    .card-video { display: inline-block; margin: 0.85rem 1.25rem 0 0; font-size: 0.68rem; letter-spacing: 0.05em; color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+    .card-video:hover { color: var(--text); border-color: var(--text); }
     .card-readmore { white-space: nowrap; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--muted); }
     .card-readmore:hover { border-color: var(--text); }
     .card-summary { list-style: none; margin: 0 0 0.9rem; padding: 0; }
@@ -794,6 +796,7 @@
                   </div>
                 </div>
                 ${photoHTML}
+                ${r.video ? `<a class="card-video" href="${r.video}" target="_blank" rel="noopener" onclick="event.stopPropagation()">&#x25B6; Watch on YouTube &#x2197;</a>` : ''}
                 <a class="card-permalink" href="/ratings/${r.slug}.html" target="_blank" rel="noopener" onclick="event.stopPropagation()">Permalink &#x2197;</a>
                 ${commentsSectionHTML(r)}
               </div>

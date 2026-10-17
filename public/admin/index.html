@@ -583,6 +583,7 @@
         value: document.getElementById(`ef-value-${key}`).value,
         experience: document.getElementById(`ef-experience-${key}`).value,
         submitter: r.submitter,
+        video: r.video,
         photos
       };
       const result = await api('POST', body);

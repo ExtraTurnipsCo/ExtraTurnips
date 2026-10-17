@@ -135,6 +135,7 @@ function buildRatingMarkdown(data) {
     experience: parseFloat(data.experience)
   };
   if (data.submitter) fm.submitter = data.submitter;
+  if (data.video) fm.video = data.video;
   const photos = Array.isArray(data.photos)
     ? data.photos.filter(Boolean)
     : (data.photos && String(data.photos).trim() ? String(data.photos).split(',').map(s => s.trim()).filter(Boolean) : []);

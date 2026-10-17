@@ -18,6 +18,7 @@ note: >-
 taste: 45
 value: 18.5
 experience: 19.5
+video: https://www.youtube.com/watch?v=PU8QzEA-bVU
 photos:
   - >-
     https://res.cloudinary.com/dk5zuikbf/image/upload/v1788228488/ow7kpsvrcwh0ki0j2dyf.jpg

@@ -1172,5 +1172,12 @@
     });
   </script>
   __CF_BEACON__
+<!-- PREVIEW ONLY (PR #26): puts a sample photo in the community strip on deploy previews so the photo version can be seen. Remove before merging. -->
+<script>
+if (location.hostname.indexOf('deploy-preview-') === 0) {
+  var c = document.querySelector('.spotlight-card');
+  if (c && !c.querySelector('.spotlight-photo')) c.insertAdjacentHTML('afterbegin', '<div class="spotlight-photo"><img src="https://res.cloudinary.com/dk5zuikbf/image/upload/f_auto,q_auto,c_limit,w_200/v1782728797/mpjm41abl6m8vimrvhus.jpg" alt="Sample photo" /></div>');
+}
+</script>
 </body>
 </html>

@@ -327,6 +327,24 @@
     .featured-summary { font-size: 0.95rem; color: var(--secondary); line-height: 1.7; margin-top: 1.1rem; }
     .featured-cta { display: inline-block; margin-top: 0.8rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border-bottom: 1px solid var(--accent); padding-bottom: 2px; transition: opacity 0.15s; }
     .featured-hero:hover .featured-cta { opacity: 0.7; }
+    /* Community spotlight: one slim strip under the hero, on the same measure
+       as the ratings list, so our own review stays the clear lead. */
+    .community-spotlight { max-width: calc(660px + 2.5rem); margin: -0.5rem auto 2.75rem; padding: 0 1.25rem; }
+    @media (min-width: 1080px) { .community-spotlight { max-width: calc(1020px + 3rem); padding: 0 1.5rem; margin-bottom: 3.25rem; } }
+    .spotlight-card { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: inherit; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 0.85rem 1.4rem 0.85rem 1.1rem; transition: border-color 0.15s; }
+    .spotlight-card:hover { border-color: var(--accent); }
+    .spotlight-photo { width: 56px; height: 56px; flex-shrink: 0; border-radius: 50%; overflow: hidden; background: var(--border); }
+    .spotlight-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .spotlight-body { flex: 1; min-width: 0; }
+    .spotlight-name { font-family: var(--display); font-size: 1.05rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; color: var(--text); }
+    .spotlight-by { font-family: var(--mono); font-size: 0.66rem; font-weight: 400; letter-spacing: 0.06em; color: var(--accent); margin-left: 0.35rem; white-space: nowrap; }
+    .spotlight-quote { font-size: 0.85rem; font-style: italic; color: var(--secondary); line-height: 1.5; margin-top: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .spotlight-score { flex-shrink: 0; font-family: var(--display); font-weight: 600; font-size: 1.35rem; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .spotlight-score.top { color: var(--gold); }
+    .spotlight-score .featured-denom { color: var(--muted); }
+    .spotlight-all { display: inline-block; margin-top: 0.8rem; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+    .spotlight-all:hover { color: var(--accent); }
+    @media (max-width: 480px) { .spotlight-card { border-radius: 14px; } }
     @media (max-width: 480px) {
       .featured-name { font-size: 1.3rem; }
       .featured-media { aspect-ratio: 4 / 3; }
@@ -526,6 +544,7 @@
     <!-- RATINGS -->
     <div id="ratings" class="page active tiers bleed">
       <div id="featuredHero" class="bleed"></div>
+      <div id="communitySpotlight"></div>
 
       <section class="map-band bleed" aria-label="Map of everywhere we've eaten">
         <div class="map-band-head">

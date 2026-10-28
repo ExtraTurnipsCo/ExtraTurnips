@@ -349,34 +349,28 @@ function heroHTML(r) {
 
 // Smaller card under the hero for the newest community submission, so our own
 // review keeps the spotlight but readers' reviews still get seen. Static like
-// the hero; community reviews rarely have photos, so it's a quote card.
+// the hero. A slim strip: round thumbnail if the reviewer added a photo, then
+// name, reviewer, a one-line quote and the score.
 function communitySpotlightHTML(r) {
   if (!r) return '';
   const score = Math.round(total(r) * 10) / 10;
-  const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
-  const location = String(r.location || '').replace(/^[•\s]+/, '');
-  const metaLine = [location, r.date, typeLabel].filter(Boolean).map(esc).join(' &middot; ');
-  const firstName = String(r.submitter).trim().split(/\s+/)[0];
+  const name = String(r.name).trim();
+  const submitter = String(r.submitter).trim();
+  const firstName = submitter.split(/\s+/)[0];
   const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
   const photo = photos[0]
-    ? `<div class="spotlight-photo"><img src="${esc(sized(photos[0], 600))}" alt="Shawarma at ${esc(String(r.name).trim())}" loading="lazy" /></div>`
+    ? `<div class="spotlight-photo"><img src="${esc(sized(photos[0], 200))}" alt="Shawarma at ${esc(name)}" loading="lazy" /></div>`
     : '';
   return `
-      <div class="community-spotlight sv-quote${photo ? ' has-photo' : ''}">
+      <div class="community-spotlight">
         <div class="featured-eyebrow">Latest from the Community</div>
-        <a class="spotlight-card" href="/ratings/${r.slug}.html" aria-label="Read ${esc(firstName)}'s review of ${esc(String(r.name).trim())}">
+        <a class="spotlight-card" href="/ratings/${r.slug}.html" aria-label="Read ${esc(firstName)}'s review of ${esc(name)}">
           ${photo}
           <div class="spotlight-body">
-          <div class="spotlight-head">
-            <div>
-              <div class="spotlight-name">${esc(String(r.name).trim())}</div>
-              <div class="spotlight-meta">${metaLine}</div>
-            </div>
-            <span class="spotlight-score${score >= 80 ? ' top' : ''}">${score}<span class="featured-denom">/100</span></span>
+            <div class="spotlight-name">${esc(name)} <span class="spotlight-by">by ${esc(submitter)}</span></div>
+            <p class="spotlight-quote">&ldquo;${esc(truncate(String(r.note || '').trim(), 200))}&rdquo;</p>
           </div>
-          <p class="spotlight-quote">&ldquo;${esc(truncate(String(r.note || '').trim(), 200))}&rdquo;</p>
-          <div class="spotlight-by">&mdash; ${esc(String(r.submitter).trim())}</div>
-          </div>
+          <span class="spotlight-score${score >= 80 ? ' top' : ''}">${score}<span class="featured-denom">/100</span></span>
         </a>
         <a class="spotlight-all" onclick="switchRatingTab('community'); document.getElementById('tab-community').scrollIntoView({behavior:'smooth', block:'center'})">See all community reviews &rarr;</a>
       </div>`;

@@ -378,6 +378,7 @@
         return;
       }
       tab.textContent = `Pending (${subs.length})`;
+      pendingCache = Object.fromEntries(subs.map(s => [s.id, s.data || {}]));
       list.innerHTML = subs.map(s => buildSubCard(s)).join('');
     } catch(err) {
       list.innerHTML = `<p class="pending-empty" style="color:var(--red)">Failed to load: ${err.message}</p>`;
@@ -390,7 +391,6 @@
     const d = s.data || {};
     const taste = parseFloat(d.taste)||0, val = parseFloat(d.value)||0, exp = parseFloat(d.experience)||0;
     const total = Math.round((taste+val+exp)*10)/10;
-    const dataAttr = encodeURIComponent(JSON.stringify(d));
     return `<div class="sub-card" id="sub-${s.id}">
       <div class="sub-card-top">
         <span class="sub-name">${esc(d.name)}</span>
@@ -404,15 +404,18 @@
         <div>Experience <strong>${exp}/25</strong></div>
       </div>
       <div class="sub-actions">
-        <button class="btn-approve" id="approve-${s.id}" onclick="approve('${s.id}','${dataAttr}')">Approve</button>
+        <button class="btn-approve" id="approve-${s.id}" onclick="approve('${s.id}')">Approve</button>
         <button class="btn-reject" id="reject-${s.id}" onclick="reject('${s.id}')">Reject</button>
         <span class="sub-feedback" id="feedback-${s.id}"></span>
       </div>
     </div>`;
   }
 
-  async function approve(id, dataEncoded) {
-    const d = JSON.parse(decodeURIComponent(dataEncoded));
+  // Submission data is looked up by id rather than inlined in onclick, where an apostrophe in a note would break the handler.
+  let pendingCache = {};
+
+  async function approve(id) {
+    const d = pendingCache[id] || {};
     const aBtn = document.getElementById(`approve-${id}`);
     const rBtn = document.getElementById(`reject-${id}`);
     const fb = document.getElementById(`feedback-${id}`);

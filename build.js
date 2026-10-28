@@ -357,10 +357,16 @@ function communitySpotlightHTML(r) {
   const location = String(r.location || '').replace(/^[•\s]+/, '');
   const metaLine = [location, r.date, typeLabel].filter(Boolean).map(esc).join(' &middot; ');
   const firstName = String(r.submitter).trim().split(/\s+/)[0];
+  const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
+  const photo = photos[0]
+    ? `<div class="spotlight-photo"><img src="${esc(sized(photos[0], 600))}" alt="Shawarma at ${esc(String(r.name).trim())}" loading="lazy" /></div>`
+    : '';
   return `
-      <div class="community-spotlight">
+      <div class="community-spotlight sv-quote${photo ? ' has-photo' : ''}">
         <div class="featured-eyebrow">Latest from the Community</div>
         <a class="spotlight-card" href="/ratings/${r.slug}.html" aria-label="Read ${esc(firstName)}'s review of ${esc(String(r.name).trim())}">
+          ${photo}
+          <div class="spotlight-body">
           <div class="spotlight-head">
             <div>
               <div class="spotlight-name">${esc(String(r.name).trim())}</div>
@@ -370,6 +376,7 @@ function communitySpotlightHTML(r) {
           </div>
           <p class="spotlight-quote">&ldquo;${esc(truncate(String(r.note || '').trim(), 200))}&rdquo;</p>
           <div class="spotlight-by">&mdash; ${esc(String(r.submitter).trim())}</div>
+          </div>
         </a>
         <a class="spotlight-all" onclick="switchRatingTab('community'); document.getElementById('tab-community').scrollIntoView({behavior:'smooth', block:'center'})">See all community reviews &rarr;</a>
       </div>`;

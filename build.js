@@ -347,6 +347,34 @@ function heroHTML(r) {
       </a>`;
 }
 
+// Smaller card under the hero for the newest community submission, so our own
+// review keeps the spotlight but readers' reviews still get seen. Static like
+// the hero; community reviews rarely have photos, so it's a quote card.
+function communitySpotlightHTML(r) {
+  if (!r) return '';
+  const score = Math.round(total(r) * 10) / 10;
+  const typeLabel = r.type ? r.type.charAt(0).toUpperCase() + r.type.slice(1) : '';
+  const location = String(r.location || '').replace(/^[•\s]+/, '');
+  const metaLine = [location, r.date, typeLabel].filter(Boolean).map(esc).join(' &middot; ');
+  const firstName = String(r.submitter).trim().split(/\s+/)[0];
+  return `
+      <div class="community-spotlight">
+        <div class="featured-eyebrow">Latest from the Community</div>
+        <a class="spotlight-card" href="/ratings/${r.slug}.html" aria-label="Read ${esc(firstName)}'s review of ${esc(String(r.name).trim())}">
+          <div class="spotlight-head">
+            <div>
+              <div class="spotlight-name">${esc(String(r.name).trim())}</div>
+              <div class="spotlight-meta">${metaLine}</div>
+            </div>
+            <span class="spotlight-score${score >= 80 ? ' top' : ''}">${score}<span class="featured-denom">/100</span></span>
+          </div>
+          <p class="spotlight-quote">&ldquo;${esc(truncate(String(r.note || '').trim(), 200))}&rdquo;</p>
+          <div class="spotlight-by">&mdash; ${esc(String(r.submitter).trim())}</div>
+        </a>
+        <a class="spotlight-all" onclick="switchRatingTab('community'); document.getElementById('tab-community').scrollIntoView({behavior:'smooth', block:'center'})">See all community reviews &rarr;</a>
+      </div>`;
+}
+
 async function build() {
 
 const allRatings = loadCollection('content/ratings');
@@ -634,6 +662,7 @@ const byScore = (a, b) => total(b) - total(a);
 const ssrRatings = [...adminPrimary].sort(byScore).map(homeCardHTML).join('');
 const ssrCommunity = [...communityRatings].sort(byScore).map(homeCardHTML).join('');
 const ssrHero = heroHTML(pickFeatured(adminPrimary));
+const ssrSpotlight = communitySpotlightHTML([...communityRatings].sort((a, b) => recencyMs(b) - recencyMs(a))[0]);
 
 // Fills an empty container in the template with server-rendered markup,
 // keeping whatever attributes it carries. Matching the tag literally meant
@@ -662,6 +691,7 @@ let output = template
   .replace('</head>', () => `  ${homeJsonLd()}\n</head>`);
 
 output = injectInto(output, 'featuredHero', ssrHero);
+output = injectInto(output, 'communitySpotlight', ssrSpotlight);
 output = injectInto(output, 'ratingCards', ssrRatings);
 output = injectInto(output, 'communityCards', ssrCommunity);
 

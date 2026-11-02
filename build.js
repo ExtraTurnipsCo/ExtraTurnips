@@ -506,7 +506,7 @@ function commentsSectionHTML(p) {
 // `canonicalUrl` differs from `url` only for a superseded review: that page
 // stays live and readable, but points Google at the current review instead of
 // competing with it.
-function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd, canonicalUrl, activeNav = 'ratings' }) {
+function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd, canonicalUrl, activeNav = 'ratings', extraCSS = '' }) {
   // Same nav as the homepage, but as real links: the homepage reads the hash
   // on load and opens that tab.
   const navLink = (id, label) =>
@@ -533,7 +533,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd,
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>${sharedStyle}${permalinkExtraCSS}</style>
+  <style>${sharedStyle}${permalinkExtraCSS}${extraCSS}</style>
 </head>
 <body>
   ${iconSprite}
@@ -546,6 +546,7 @@ function pageShell({ title, description, ogImage, url, ogType, bodyHTML, jsonLd,
       <ul class="nav-links">
         ${navLink('ratings', 'Ratings')}
         ${navLink('map', 'Map')}
+        <li><a href="/overpaying"${activeNav === 'overpaying' ? ' class="active"' : ''}>Price Check</a></li>
         ${navLink('about', 'About')}
         <li class="social social-icons">
           <a href="https://www.tiktok.com/@extra.turnips" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg><use href="#ico-tiktok"/></svg></a>
@@ -656,6 +657,132 @@ function postPageHTML(p) {
   });
 }
 
+// The Shawarma Index lives in its own project; content/shawarma-index.csv is a
+// copy of its data/index.csv, since Netlify can only see this repo. City-level
+// numbers only. The price each person enters stays in their browser.
+function loadShawarmaIndex() {
+  const [head, ...lines] = fs.readFileSync('content/shawarma-index.csv', 'utf8').trim().split(/\r?\n/);
+  const cols = head.split(',');
+  const cities = lines.map(line => {
+    const r = Object.fromEntries(line.split(',').map((v, i) => [cols[i], v]));
+    const taxPct = Number(r.tax_added_pct);
+    const withTax = x => Number(x) * (1 + taxPct / 100);
+    const usd = Number(r.median_usd_exact);
+    const median = withTax(r.median_local);
+    if (!(usd > 0 && median > 0)) throw new Error(`build: bad Shawarma Index row for ${r.city}`);
+    return {
+      city: r.city,
+      currency: r.currency,
+      shops: Number(r.shops_verified),
+      taxPct,
+      menuMedian: Number(r.median_local),
+      median,
+      q1: withTax(r.q1_local),
+      q3: withTax(r.q3_local),
+      usd,
+      usdPerUnit: usd / median
+    };
+  });
+  return { collected: lines[0].split(',')[cols.indexOf('fx_date')], cities };
+}
+
+function formatIndexDate(iso) {
+  return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+const overpayingCSS = `
+  .op { grid-column: read; padding-bottom: 3rem; }
+  .op-title { font-family: var(--display); font-weight: 600; font-size: 2.2rem; line-height: 1.12; letter-spacing: -0.015em; }
+  .op-intro { margin: 0.8rem 0 1.5rem; color: var(--secondary); }
+  .op-form .form-submit { margin-top: 0.25rem; }
+  .op-error { color: var(--accent); font-size: 0.85rem; margin-bottom: 0.75rem; }
+  .op-result { margin-top: 2.25rem; padding-top: 1.75rem; border-top: 1px solid var(--border); }
+  .op-eyebrow { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .op-verdict { font-family: var(--display); font-weight: 600; font-size: 2.5rem; line-height: 1.1; letter-spacing: -0.015em; color: var(--accent); margin: 0.2rem 0 0.6rem; }
+  .op-diff { font-size: 1.1rem; font-weight: 500; }
+  .op-detail { color: var(--secondary); font-size: 0.9rem; margin-top: 0.35rem; }
+  .op-check { margin-top: 0.8rem; padding: 0.6rem 0.8rem; background: var(--accent-soft); border-radius: 3px; font-size: 0.85rem; color: var(--secondary); }
+  .op-fun { font-family: var(--display); font-style: italic; font-size: 1.2rem; margin-top: 1.1rem; }
+  .op-ladder-title { font-family: var(--display); font-weight: 600; font-size: 1.2rem; margin-top: 1.75rem; }
+  .op-compare { font-size: 0.85rem; color: var(--secondary); margin-top: 0.3rem; }
+  .op-ladder { list-style: none; margin-top: 0.85rem; }
+  .op-row { display: grid; grid-template-columns: 7.2rem 1fr; align-items: center; gap: 0.5rem; padding: 2px 0; font-size: 0.85rem; color: var(--secondary); }
+  .op-row .op-track { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
+  .op-bar { height: 12px; min-width: 3px; background: var(--border); border-radius: 0 4px 4px 0; }
+  .op-val { font-family: var(--mono); font-size: 0.75rem; white-space: nowrap; }
+  .op-row.home { color: var(--text); font-weight: 500; }
+  .op-row.home .op-bar { background: var(--muted); }
+  .op-row.you { color: var(--text); font-weight: 600; }
+  .op-row.you .op-bar { background: var(--accent); }
+  .op-share { margin-top: 1.5rem; }
+  .op-share .form-submit { margin-top: 0; }
+  .op-share-status { font-size: 0.82rem; color: var(--secondary); margin-top: 0.5rem; min-height: 1.2em; }
+  .op-request { margin-top: 2.5rem; padding-top: 1.75rem; border-top: 1px solid var(--border); position: relative; }
+  .op-request h2 { font-family: var(--display); font-weight: 600; font-size: 1.35rem; margin-bottom: 0.9rem; }
+  .op-request .form-submit { margin-top: 0.25rem; }
+  .op-request-status { font-size: 0.85rem; color: var(--secondary); margin-top: 0.5rem; min-height: 1.2em; }
+  .op-method { margin-top: 2.25rem; font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+  .op-method strong { font-weight: 500; color: var(--secondary); }
+  @media (max-width: 480px) {
+    .op-title { font-size: 1.75rem; }
+    .op-verdict { font-size: 2rem; }
+    .op-row { grid-template-columns: 6rem 1fr; }
+  }
+`;
+
+function overpayingPageHTML(index) {
+  const bodyHTML = `
+      <div class="op">
+        <h1 class="op-title">Am I overpaying for shawarma?</h1>
+        <p class="op-intro">Tell us what you paid for one regular chicken shawarma wrap, no sides. We'll check it against the Shawarma Index: median prices from ${index.cities.length} cities.</p>
+        <form id="opForm" class="op-form" novalidate>
+          <div class="form-row">
+            <label for="opCity">City</label>
+            <select id="opCity"></select>
+          </div>
+          <div class="form-row" id="opCurrencyRow" hidden>
+            <label for="opCurrency">Currency you paid in</label>
+            <select id="opCurrency"></select>
+          </div>
+          <div class="form-row">
+            <label for="opPaid">You paid (<span id="opSymbol"></span>), with tax, before tip or delivery</label>
+            <input id="opPaid" type="number" inputmode="decimal" min="0" step="0.01" placeholder="e.g. 14.50" />
+          </div>
+          <p class="op-error" id="opError" role="alert" hidden></p>
+          <button type="submit" class="form-submit">Check my price</button>
+        </form>
+        <div id="opResult" class="op-result" aria-live="polite" hidden></div>
+        <form id="opRequest" class="op-request" name="city-request" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+          <h2>Which city should we check next?</h2>
+          <input type="hidden" name="form-name" value="city-request" />
+          <input type="text" name="bot-field" class="hp-field" tabindex="-1" autocomplete="off" />
+          <div class="form-row">
+            <label for="opReqCity">City</label>
+            <input id="opReqCity" type="text" name="city" required maxlength="80" placeholder="e.g. Beirut" />
+          </div>
+          <div class="form-row">
+            <label for="opReqPaid">What a wrap costs there (optional)</label>
+            <input id="opReqPaid" type="text" name="price" maxlength="40" placeholder="e.g. 9 euros" />
+          </div>
+          <button type="submit" class="form-submit">Send it to us</button>
+          <p class="op-request-status" id="opRequestStatus" role="status"></p>
+        </form>
+        <p class="op-method"><strong>How we got these numbers:</strong> one regular chicken shawarma wrap with no sides, from independent shops and small local chains. Each city's number is the median of 7 to 15 shops, using delivery app list prices collected ${esc(formatIndexDate(index.collected))}, so paying a little less at the counter is normal. Buy-one-get-one-free prices aren't counted. Local tax is added where menus exclude it. Converted to USD at that day's rates. Vancouver, Halifax and Waterloo include nearby cities. Dubai and Cairo apps often discount below list price.</p>
+      </div>
+      <script>window.SHAWARMA_INDEX = ${JSON.stringify(index).replace(/</g, '\\u003c')};</script>
+      <script src="/overpaying.js"></script>`;
+  return pageShell({
+    title: 'Am I Overpaying for Shawarma? — Extra Turnips',
+    description: 'Enter what you paid for a chicken shawarma and see how it compares with the Shawarma Index: median prices across 15 cities.',
+    ogImage: `${SITE_URL}/ExtraTurnipsLogo.png`,
+    url: `${SITE_URL}/overpaying`,
+    ogType: 'website',
+    activeNav: 'overpaying',
+    extraCSS: overpayingCSS,
+    bodyHTML
+  });
+}
+
 // Server-rendered card lists so the homepage isn't an empty shell to crawlers.
 // The SPA replaces these containers' innerHTML on load; sort here to match the
 // default client sort (by total score, descending).
@@ -715,8 +842,12 @@ const newestDate = [...allRatings, ...publishedPosts]
 // Superseded reviews are left out: their pages still exist and stay reachable,
 // but they canonicalise to the current review, so listing both would put two
 // near-identical pages for one restaurant in front of Google.
+const shawarmaIndex = loadShawarmaIndex();
+fs.writeFileSync('public/overpaying.html', overpayingPageHTML(shawarmaIndex));
+
 const sitemapUrls = [
   { loc: SITE_URL + '/', lastmod: newestDate },
+  { loc: SITE_URL + '/overpaying', lastmod: shawarmaIndex.collected },
   ...[...adminPrimary, ...communityRatings].map(r => ({ loc: `${SITE_URL}/ratings/${r.slug}.html`, lastmod: entryDate(r) })),
   ...publishedPosts.map(p => ({ loc: `${SITE_URL}/posts/${p.slug}.html`, lastmod: entryDate(p) }))
 ];

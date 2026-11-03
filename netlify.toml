@@ -14,3 +14,9 @@
   from = "/posts/*"
   to = "/"
   status = 302
+
+# The price tool was first shared as /overpaying; keep those links working.
+[[redirects]]
+  from = "/overpaying"
+  to = "/price-check"
+  status = 301

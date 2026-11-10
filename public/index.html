@@ -422,6 +422,9 @@
     .map-popup-row-score { font-family: var(--display); font-size: 0.95rem; }
     .map-popup-row-by { font-size: 0.72rem; color: var(--muted); flex: 1; }
     .map-popup-row-arrow { font-size: 0.7rem; color: var(--muted); }
+    .map-popup-summary { margin-top: 0.45rem; padding-top: 0.45rem; border-top: 1px dashed var(--border); font-size: 0.72rem; color: var(--muted); }
+    .map-popup-more > .map-popup-summary:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .map-popup-summary strong { font-family: var(--display); font-weight: 400; font-size: 0.95rem; color: var(--text); }
     /* Photo revealed inside the popup on click, not on the pin itself. */
     .map-popup-photo { display: block; width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; background: var(--tag-bg); margin: 0.1rem 0 0.55rem; }
     .map-popup-community { margin-top: 0.55rem; font-size: 0.62rem; letter-spacing: 0.09em; text-transform: uppercase; color: #2A81CB; font-family: var(--body); }
@@ -941,8 +944,10 @@
       inst.markers = groupForMap(located).map(group => {
         // Our own review leads the pin when there is one; community reviews of
         // the same place ride along underneath it in the popup.
-        const lead = group.find(r => !r.submitter) || group[0];
-        const others = group.filter(r => r !== lead);
+        // Newest first, by the epoch-ms timestamp at the end of the slug.
+        const postedMs = r => { const m = String(r.slug).match(/(\d{13})$/); return m ? +m[1] : (Date.parse(r.date) || 0); };
+        const community = group.filter(r => r.submitter).sort((a, b) => postedMs(b) - postedMs(a));
+        const lead = group.find(r => !r.submitter) || community[0];
         const score = Math.round(total(lead) * 10) / 10;
         // Community submissions are always blue; our own ratings are tiered by
         // score — green ≥85, amber 70–84, red below 70.
@@ -951,7 +956,7 @@
           : score >= 70 ? '#E0A21A'
           : '#C6432E';
         // A small blue badge on the pin says "there's a community take in here too".
-        const badgeHTML = others.length ? `<span class="et-pin-badge">${others.length + (lead.submitter ? 1 : 0)}</span>` : '';
+        const badgeHTML = group.length > 1 ? `<span class="et-pin-badge">${community.length}</span>` : '';
         const icon = L.divIcon({
           className: '',
           html: `<div class="et-pin-marker">${pinSVG(color)}${badgeHTML}</div>`,
@@ -964,15 +969,23 @@
         const photos = Array.isArray(lead.photos) ? lead.photos : (lead.photo_url ? [lead.photo_url] : []);
         const photoHTML = photos.length ? `<img class="map-popup-photo" src="${sized(photos[0], 500)}" alt="${lead.name}" />` : '';
         const submitterHTML = lead.submitter ? ` &middot; ${lead.submitter}` : '';
-        const othersHTML = others.length ? `
+        // Under our review: the newest community rating, then one summary line
+        // for all of them — so the popup stays the same height at 2 or 20.
+        const latest = lead.submitter ? null : community[0];
+        const avg = community.length ? Math.round(community.reduce((s, r) => s + total(r), 0) / community.length) : 0;
+        const summaryHTML = community.length > 1
+          ? `<div class="map-popup-summary">Community average <strong>${avg}</strong><span class="map-popup-denom">/100</span> &middot; ${community.length} reviews</div>`
+          : '';
+        const othersHTML = group.length > 1 ? `
             <div class="map-popup-more">
-              <div class="map-popup-community">${lead.submitter ? 'More from the community' : 'From the community'}</div>
-              ${others.map(o => `
-                <a class="map-popup-row" href="/ratings/${o.slug}.html" target="_blank" rel="noopener">
-                  <span class="map-popup-row-score">${Math.round(total(o) * 10) / 10}<span class="map-popup-denom">/100</span></span>
-                  <span class="map-popup-row-by">by ${o.submitter || 'us'}</span>
+              ${latest ? `
+                <div class="map-popup-community">Latest from the community</div>
+                <a class="map-popup-row" href="/ratings/${latest.slug}.html" target="_blank" rel="noopener">
+                  <span class="map-popup-row-score">${Math.round(total(latest) * 10) / 10}<span class="map-popup-denom">/100</span></span>
+                  <span class="map-popup-row-by">by ${latest.submitter}</span>
                   <span class="map-popup-row-arrow">&#x2197;</span>
-                </a>`).join('')}
+                </a>` : ''}
+              ${summaryHTML}
             </div>` : '';
         marker.bindPopup(`
           <div class="map-popup">
@@ -981,7 +994,7 @@
             ${photoHTML}
             <div class="map-popup-score">${score}<span class="map-popup-denom">/100</span></div>
             <a class="map-popup-link" href="/ratings/${lead.slug}.html" target="_blank" rel="noopener">View ${lead.submitter ? 'rating' : 'our rating'} &#x2197;</a>
-            ${lead.submitter && !others.length ? '<div class="map-popup-community">Community</div>' : ''}
+            ${lead.submitter ? '<div class="map-popup-community">Community</div>' : ''}
             ${othersHTML}
           </div>`);
         return marker;

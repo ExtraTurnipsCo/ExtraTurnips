@@ -408,7 +408,20 @@
     .map-popup-link { font-size: 0.7rem; color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
     .map-popup-link:hover { color: var(--text); border-color: var(--text); }
     /* Score-tiered teardrop pins (fill colour set inline per rating). */
-    .et-pin-marker { line-height: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+    .et-pin-marker { position: relative; line-height: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+    .et-pin-badge {
+      position: absolute; top: -5px; right: -8px;
+      min-width: 16px; height: 16px; padding: 0 3px; box-sizing: border-box;
+      border-radius: 8px; border: 2px solid #ffffff; background: #2A81CB; color: #ffffff;
+      font: 700 9px/12px var(--body); text-align: center;
+    }
+    .map-popup-more { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+    .map-popup-more .map-popup-community { margin-top: 0; margin-bottom: 0.35rem; }
+    .map-popup-row { display: flex; align-items: baseline; gap: 0.45rem; padding: 0.2rem 0; text-decoration: none; color: var(--text); }
+    .map-popup-row:hover .map-popup-row-by, .map-popup-row:hover .map-popup-row-arrow { color: var(--text); }
+    .map-popup-row-score { font-family: var(--display); font-size: 0.95rem; }
+    .map-popup-row-by { font-size: 0.72rem; color: var(--muted); flex: 1; }
+    .map-popup-row-arrow { font-size: 0.7rem; color: var(--muted); }
     /* Photo revealed inside the popup on click, not on the pin itself. */
     .map-popup-photo { display: block; width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px; background: var(--tag-bg); margin: 0.1rem 0 0.55rem; }
     .map-popup-community { margin-top: 0.55rem; font-size: 0.62rem; letter-spacing: 0.09em; text-transform: uppercase; color: #2A81CB; font-family: var(--body); }
@@ -863,6 +876,40 @@
       </svg>`;
     }
 
+    // Reviews of the same place share one pin. "Same place" = within ~100 m
+    // AND the names match once the many spellings of "shawarma" and filler
+    // words are stripped ("Shawarma Empire" vs "Shwarma Empire"). Exact
+    // coordinates aren't enough on their own: community addresses are typed
+    // differently, and two shops can sit next door to each other.
+    function mapNameKey(name) {
+      return String(name || '').toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[’']s\b/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .split(' ')
+        .filter(w => w && !/^(sh?a?w[ae]?r?ma|shwarma|shawerma|shawrma|the|and|restaurant|grill|cafe|kitchen)$/.test(w))
+        .join(' ');
+    }
+    function metresApart(a, b) {
+      const toRad = d => d * Math.PI / 180;
+      const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+      const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+      return 2 * 6371000 * Math.asin(Math.sqrt(h));
+    }
+    function samePlace(a, b) {
+      if (metresApart(a, b) > 100) return false;
+      const ka = mapNameKey(a.name), kb = mapNameKey(b.name);
+      return ka && kb && (ka === kb || ka.includes(kb) || kb.includes(ka));
+    }
+    function groupForMap(reviews) {
+      const groups = [];
+      for (const r of reviews) {
+        const g = groups.find(g => g.some(x => samePlace(x, r)));
+        if (g) g.push(r); else groups.push([r]);
+      }
+      return groups;
+    }
+
     function renderMap(containerId = 'mapContainer', opts = {}) {
       const located = [...allRatings, ...communityRatings].filter(r => r.lat != null && r.lng != null);
       const container = document.getElementById(containerId);
@@ -891,34 +938,51 @@
       }
 
       inst.markers.forEach(m => inst.map.removeLayer(m));
-      inst.markers = located.map(r => {
-        const score = Math.round(total(r) * 10) / 10;
+      inst.markers = groupForMap(located).map(group => {
+        // Our own review leads the pin when there is one; community reviews of
+        // the same place ride along underneath it in the popup.
+        const lead = group.find(r => !r.submitter) || group[0];
+        const others = group.filter(r => r !== lead);
+        const score = Math.round(total(lead) * 10) / 10;
         // Community submissions are always blue; our own ratings are tiered by
         // score — green ≥85, amber 70–84, red below 70.
-        const color = r.submitter ? '#2A81CB'
+        const color = lead.submitter ? '#2A81CB'
           : score >= 85 ? '#2F9E5B'
           : score >= 70 ? '#E0A21A'
           : '#C6432E';
+        // A small blue badge on the pin says "there's a community take in here too".
+        const badgeHTML = others.length ? `<span class="et-pin-badge">${others.length + (lead.submitter ? 1 : 0)}</span>` : '';
         const icon = L.divIcon({
           className: '',
-          html: `<div class="et-pin-marker">${pinSVG(color)}</div>`,
+          html: `<div class="et-pin-marker">${pinSVG(color)}${badgeHTML}</div>`,
           iconSize: [26, 36],
           iconAnchor: [13, 35],
           popupAnchor: [0, -32]
         });
-        const marker = L.marker([r.lat, r.lng], { icon }).addTo(inst.map);
+        const marker = L.marker([lead.lat, lead.lng], { icon }).addTo(inst.map);
         // The photo lives in the popup — it only appears once a pin is clicked.
-        const photos = Array.isArray(r.photos) ? r.photos : (r.photo_url ? [r.photo_url] : []);
-        const photoHTML = photos.length ? `<img class="map-popup-photo" src="${sized(photos[0], 500)}" alt="${r.name}" />` : '';
-        const submitterHTML = r.submitter ? ` &middot; ${r.submitter}` : '';
+        const photos = Array.isArray(lead.photos) ? lead.photos : (lead.photo_url ? [lead.photo_url] : []);
+        const photoHTML = photos.length ? `<img class="map-popup-photo" src="${sized(photos[0], 500)}" alt="${lead.name}" />` : '';
+        const submitterHTML = lead.submitter ? ` &middot; ${lead.submitter}` : '';
+        const othersHTML = others.length ? `
+            <div class="map-popup-more">
+              <div class="map-popup-community">${lead.submitter ? 'More from the community' : 'From the community'}</div>
+              ${others.map(o => `
+                <a class="map-popup-row" href="/ratings/${o.slug}.html" target="_blank" rel="noopener">
+                  <span class="map-popup-row-score">${Math.round(total(o) * 10) / 10}<span class="map-popup-denom">/100</span></span>
+                  <span class="map-popup-row-by">by ${o.submitter || 'us'}</span>
+                  <span class="map-popup-row-arrow">&#x2197;</span>
+                </a>`).join('')}
+            </div>` : '';
         marker.bindPopup(`
           <div class="map-popup">
-            <div class="map-popup-name">${r.name}</div>
-            <div class="map-popup-meta">${r.location}${submitterHTML}</div>
+            <div class="map-popup-name">${lead.name}</div>
+            <div class="map-popup-meta">${lead.location}${submitterHTML}</div>
             ${photoHTML}
             <div class="map-popup-score">${score}<span class="map-popup-denom">/100</span></div>
-            <a class="map-popup-link" href="/ratings/${r.slug}.html" target="_blank" rel="noopener">View rating &#x2197;</a>
-            ${r.submitter ? '<div class="map-popup-community">Community</div>' : ''}
+            <a class="map-popup-link" href="/ratings/${lead.slug}.html" target="_blank" rel="noopener">View ${lead.submitter ? 'rating' : 'our rating'} &#x2197;</a>
+            ${lead.submitter && !others.length ? '<div class="map-popup-community">Community</div>' : ''}
+            ${othersHTML}
           </div>`);
         return marker;
       });
